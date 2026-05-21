@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2×3 Signage — VM Distro Tools</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: #e2e2e2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 52px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1d1d1f;
+      text-decoration: none;
+    }
+
+    .nav-left svg { width: 18px; height: 18px; }
+
+    .nav-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+
+    .nav-right { display: flex; gap: 8px; }
+
+    .btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid #d1d1d6;
+      background: white;
+      color: #1d1d1f;
+      transition: background 0.15s;
+    }
+
+    .btn:hover { background: #f5f5f7; }
+
+    .btn.primary {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: white;
+    }
+
+    .btn.primary:hover { background: #1d4ed8; }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 24px 60px;
+      gap: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 32px;
+      width: 100%;
+      max-width: 680px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+
+    .card h2 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 20px;
+    }
+
+    /* ── Drop zones ── */
+    .drop-zone {
+      border: 2px dashed #c7c7cc;
+      border-radius: 14px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #fafafa;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .drop-zone.loaded {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+    }
+
+    .drop-icon svg { width: 24px; height: 24px; fill: white; }
+
+    .drop-zone h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 6px;
+    }
+
+    .drop-zone p {
+      font-size: 13px;
+      color: #6e6e73;
+      margin-bottom: 4px;
+    }
+
+    .drop-zone .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #16a34a;
+      margin-top: 8px;
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* ── Form fields ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #3a3a3c;
+    }
+
+    .field input, .field select {
+      padding: 10px 14px;
+      border: 1.5px solid #d1d1d6;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1d1d1f;
+      background: white;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: #2563eb;
+    }
+
+    .field .hint {
+      font-size: 12px;
+      color: #8e8e93;
+    }
+
+    .divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 8px 0;
+    }
+
+    /* Sign type rows */
+    .sign-rows { display: flex; flex-direction: column; gap: 10px; }
+
+    .sign-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .remove-btn {
+      width: 34px;
+      height: 38px;
+      border: 1.5px solid #fecaca;
+      background: #fff5f5;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #dc2626;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .remove-btn:hover { background: #fee2e2; }
+
+    .add-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #2563eb;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 0;
+      margin-top: 4px;
+    }
+
+    /* ── Status / output ── */
+    .status-bar {
+      display: none;
+      width: 100%;
+      max-width: 680px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status-bar.info { background: #eff6ff; color: #1d4ed8; display: flex; }
+    .status-bar.success { background: #f0fdf4; color: #15803d; display: flex; align-items: center; gap: 12px; }
+    .status-bar.error { background: #fff1f2; color: #be123c; display: flex; }
+
+    .download-btn {
+      margin-left: auto;
+      padding: 6px 16px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a href="../" class="nav-left">
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 3L5 9l6 6" stroke="#1d1d1f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      VM Distro Tools
+    </a>
+    <span class="nav-title">2×3 Signage</span>
+    <div class="nav-right">
+      <button class="btn primary" id="generateBtn" onclick="generate()" disabled>Generate</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- File Uploads -->
+    <div class="card">
+      <h2>Upload Files</h2>
+      <div class="two-col">
+
+        <div class="drop-zone" id="fixtureZone" ondragover="onDrag(event,'fixtureZone')" ondragleave="offDrag('fixtureZone')" ondrop="onDrop(event,'fixture')">
+          <input type="file" accept=".xlsx,.xls" onchange="loadFile(event,'fixture')">
+          <div class="drop-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 13h8v1.5H8V13zm0 3h5v1.5H8V16zm0-6h3v1.5H8V10z"/></svg></div>
+          <h3>Fixture Count Handoff</h3>
+          <p>Drop your Excel file here, or click to browse</p>
+          <p class="hint" style="font-size:12px;color:#8e8e93;">Provided by GEO VM team</p>
+          <div class="file-name" id="fixtureName"></div>
+        </div>
+
+        <div class="drop-zone" id="glsZone" ondragover="onDrag(event,'glsZone')" ondragleave="offDrag('glsZone')" ondrop="onDrop(event,'gls')">
+          <input type="file" accept=".xlsx,.xls" onchange="loadFile(event,'gls')">
+          <div class="drop-icon" style="background:#7c3aed;"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93V18c0-.55-.45-1-1-1s-1 .45-1 1v1.93C7.06 19.44 4.56 16.94 4.07 13H6c.55 0 1-.45 1-1s-.45-1-1-1H4.07C4.56 7.06 7.06 4.56 11 4.07V6c0 .55.45 1 1 1s1-.45 1-1V4.07C16.94 4.56 19.44 7.06 19.93 11H18c-.55 0-1 .45-1 1s.45 1 1 1h1.93c-.49 3.94-2.99 6.44-6.93 6.93z"/></svg></div>
+          <h3>GLS Language Sheet</h3>
+          <p>Drop your GLS file here, or click to browse</p>
+          <p class="hint" style="font-size:12px;color:#8e8e93;">Contains store language data</p>
+          <div class="file-name" id="glsName"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sheet Config -->
+    <div class="card">
+      <h2>Sheet Configuration</h2>
+      <div class="two-col">
+        <div class="field">
+          <label>Line of Business (LOB) Tab</label>
+          <input type="text" id="lobTab" placeholder="e.g. Mac" oninput="checkReady()">
+          <span class="hint">Tab name in your Fixture Count file</span>
+        </div>
+        <div class="field">
+          <label>WW Fixture Counts Tab</label>
+          <input type="text" id="wwTab" placeholder="e.g. WW Fixture Counts JUN26" oninput="checkReady()">
+          <span class="hint">Tab with store-level fixture data</span>
+        </div>
+        <div class="field">
+          <label>GLS Sheet Tab Name</label>
+          <input type="text" id="glsTab" placeholder="e.g. GLS" oninput="checkReady()">
+          <span class="hint">Tab containing language info</span>
+        </div>
+        <div class="field">
+          <label>Store Number Column (GLS)</label>
+          <input type="text" id="glsStoreCol" placeholder="e.g. A" oninput="checkReady()">
+          <span class="hint">Column with store numbers in GLS sheet</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cohort Rules -->
+    <div class="card">
+      <h2>Cohort Rules</h2>
+      <div class="two-col">
+        <div class="field">
+          <label>Cohort 1 — Max Table Size (ft)</label>
+          <input type="number" id="cohort1Max" value="10" oninput="checkReady()">
+          <span class="hint">Tables this size and under → Cohort 1</span>
+        </div>
+        <div class="field">
+          <label>Cohort 1 — Signs per Table</label>
+          <input type="number" id="cohort1Signs" value="2" oninput="checkReady()">
+        </div>
+        <div class="field">
+          <label>Cohort 2 — Min Table Size (ft)</label>
+          <input type="number" id="cohort2Min" value="12" oninput="checkReady()">
+          <span class="hint">Tables this size and above → Cohort 2</span>
+        </div>
+        <div class="field">
+          <label>Cohort 2 — Signs per Table</label>
+          <input type="number" id="cohort2Signs" value="3" oninput="checkReady()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sign Types -->
+    <div class="card">
+      <h2>Sign Types</h2>
+      <div class="sign-rows" id="signRows"></div>
+      <button class="add-btn" onclick="addSignRow()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#2563eb" stroke-width="1.5"/><path d="M8 5v6M5 8h6" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Add Sign Type
+      </button>
+    </div>
+
+    <!-- Buffers & Output -->
+    <div class="card">
+      <h2>Buffers &amp; Output</h2>
+      <div class="two-col">
+        <div class="field">
+          <label>Buffer %</label>
+          <input type="number" id="bufferPct" value="20" oninput="checkReady()">
+          <span class="hint">Applied to total merchandised quantity</span>
+        </div>
+        <div class="field">
+          <label>In-Store Buffer (flat add)</label>
+          <input type="number" id="instoreBuffer" value="1" oninput="checkReady()">
+          <span class="hint">Added after buffer, rounded up</span>
+        </div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label>Output File Name</label>
+          <input type="text" id="outputName" placeholder="e.g. JUN26_Signage_Distro" oninput="checkReady()">
+          <span class="hint">No need to add .xlsx — it will be added automatically</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-bar" id="statusBar"></div>
+
+  </main>
+
+  <script>
+    // ── State ──
+    const state = { fixtureWB: null, glsWB: null };
+
+    // ── Default sign row on load ──
+    window.onload = () => addSignRow();
+
+    // ── File loading ──
+    function loadFile(evt, type) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        state[type + 'WB'] = wb;
+        const zone = document.getElementById(type === 'fixture' ? 'fixtureZone' : 'glsZone');
+        const nameEl = document.getElementById(type + 'Name');
+        zone.classList.add('loaded');
+        nameEl.textContent = '✓ ' + file.name;
+        checkReady();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function onDrag(evt, id) { evt.preventDefault(); document.getElementById(id).classList.add('drag-over'); }
+    function offDrag(id) { document.getElementById(id).classList.remove('drag-over'); }
+    function onDrop(evt, type) {
+      evt.preventDefault();
+      offDrag(type === 'fixture' ? 'fixtureZone' : 'glsZone');
+      const file = evt.dataTransfer.files[0];
+      if (!file) return;
+      const fakeEvt = { target: { files: [file] } };
+      loadFile(fakeEvt, type);
+    }
+
+    // ── Sign rows ──
+    function addSignRow() {
+      const container = document.getElementById('signRows');
+      const row = document.createElement('div');
+      row.className = 'sign-row';
+      row.innerHTML = `
+        <div class="field">
+          <label>Sign Name</label>
+          <input type="text" placeholder="e.g. 2x3 Sign" oninput="checkReady()">
+        </div>
+        <div class="field">
+          <label>Part Number</label>
+          <input type="text" placeholder="e.g. 661-XXXXX" oninput="checkReady()">
+        </div>
+        <button class="remove-btn" onclick="removeSignRow(this)" title="Remove">×</button>
+      `;
+      container.appendChild(row);
+      checkReady();
+    }
+
+    function removeSignRow(btn) {
+      btn.parentElement.remove();
+      checkReady();
+    }
+
+    // ── Validation ──
+    function checkReady() {
+      const ready =
+        state.fixtureWB &&
+        state.glsWB &&
+        v('lobTab') && v('wwTab') && v('glsTab') && v('glsStoreCol') &&
+        v('outputName') &&
+        document.querySelectorAll('.sign-row input[placeholder*="Sign"]').length > 0;
+      document.getElementById('generateBtn').disabled = !ready;
+    }
+
+    function v(id) { return document.getElementById(id).value.trim(); }
+
+    // ── Generation ──
+    function generate() {
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      btn.textContent = 'Processing…';
+      setStatus('info', 'Processing your files…');
+
+      setTimeout(() => {
+        try {
+          const result = processSignage();
+          XLSX.writeFile(result, (v('outputName') || 'signage_distro') + '.xlsx');
+          setStatus('success', 'File generated successfully!', true);
+        } catch (err) {
+          setStatus('error', 'Error: ' + err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Generate';
+          checkReady();
+        }
+      }, 50);
+    }
+
+    function processSignage() {
+      const fixtureWB = state.fixtureWB;
+      const glsWB     = state.glsWB;
+
+      const wwTabName  = v('wwTab');
+      const glsTabName = v('glsTab');
+      const glsStoreCol = v('glsStoreCol').toUpperCase();
+
+      // ── Get WW Fixture sheet ──
+      if (!fixtureWB.SheetNames.includes(wwTabName))
+        throw new Error(`Tab "${wwTabName}" not found in Fixture Count file. Available tabs: ${fixtureWB.SheetNames.join(', ')}`);
+
+      // ── Get GLS sheet ──
+      const glsSheetSrc = glsWB.SheetNames.includes(glsTabName)
+        ? glsWB.Sheets[glsTabName]
+        : (() => { throw new Error(`Tab "${glsTabName}" not found in GLS file. Available tabs: ${glsWB.SheetNames.join(', ')}`); })();
+
+      // Build language lookup: store# → { primary, dual, country }
+      const glsData = XLSX.utils.sheet_to_json(glsSheetSrc, { defval: '' });
+      const langMap = {};
+      glsData.forEach(row => {
+        const keys = Object.keys(row);
+        const storeKey = keys.find(k => k.toLowerCase().includes('store') || k === glsStoreCol);
+        const primaryKey = keys.find(k => k.toLowerCase().includes('primary'));
+        const dualKey = keys.find(k => k.toLowerCase().includes('dual') || k.toLowerCase().includes('secondary'));
+        const countryKey = keys.find(k => k.toLowerCase().includes('country'));
+        if (storeKey) {
+          langMap[String(row[storeKey]).trim()] = {
+            primary: primaryKey ? row[primaryKey] : '',
+            dual:    dualKey    ? row[dualKey]    : '',
+            country: countryKey ? row[countryKey] : '',
+          };
+        }
+      });
+
+      // ── Get fixture data ──
+      const fixtureSheet = fixtureWB.Sheets[wwTabName];
+      const rows = XLSX.utils.sheet_to_json(fixtureSheet, { defval: '' });
+      if (!rows.length) throw new Error('No data found in the WW Fixture Counts tab.');
+
+      const cohort1Max   = parseInt(v('cohort1Max'))   || 10;
+      const cohort2Min   = parseInt(v('cohort2Min'))   || 12;
+      const cohort1Signs = parseInt(v('cohort1Signs')) || 2;
+      const cohort2Signs = parseInt(v('cohort2Signs')) || 3;
+      const bufferPct    = parseFloat(v('bufferPct'))  / 100 || 0.2;
+      const instoreBuf   = parseInt(v('instoreBuffer')) || 1;
+
+      // Collect sign types
+      const signRows = Array.from(document.querySelectorAll('.sign-row'));
+      const signs = signRows.map(r => {
+        const inputs = r.querySelectorAll('input');
+        return { name: inputs[0].value.trim(), partNum: inputs[1].value.trim() };
+      }).filter(s => s.name);
+
+      const outputRows = [];
+
+      rows.forEach(row => {
+        // Detect store number key
+        const keys = Object.keys(row);
+        const storeKey = keys.find(k => k.toLowerCase().includes('store') && (k.toLowerCase().includes('num') || k.toLowerCase().includes('#') || k.toLowerCase().includes('id'))) || keys[0];
+        const tableKey = keys.find(k => k.toLowerCase().includes('table') && k.toLowerCase().includes('ft')) || keys.find(k => k.toLowerCase().includes('table'));
+
+        const storeNum = String(row[storeKey] || '').trim();
+        const tableSize = parseFloat(row[tableKey] || 0);
+
+        // Determine cohort
+        let signsPerTable = 0;
+        if (tableSize <= cohort1Max) signsPerTable = cohort1Signs;
+        else if (tableSize >= cohort2Min) signsPerTable = cohort2Signs;
+
+        // Sign quantities
+        const tableCount = parseFloat(row[tableKey] || 0);
+        const signQty = Math.round(tableCount * signsPerTable);
+
+        // Buffer calcs
+        const buffer = Math.ceil(signQty * bufferPct);
+        const instoreBuffer = Math.ceil(signQty / signQty || 0) + instoreBuf;
+        const grandTotal = signQty + buffer + instoreBuf;
+
+        // Language lookup
+        const lang = langMap[storeNum] || { primary: '', dual: '', country: '' };
+
+        signs.forEach(sign => {
+          const baseRow = {
+            ...row,
+            'Sign Type': sign.name,
+            'Part Number': sign.partNum,
+            'Signs per Table': signsPerTable,
+            'Merchandised Qty': signQty,
+            'Buffer (20%)': buffer,
+            'In-Store Buffer (+1)': instoreBuf,
+            'Grand Total': grandTotal,
+            'Country': lang.country,
+            'Primary Language': lang.primary,
+            'Dual Language': lang.dual,
+            'Dual Language Row': '',
+          };
+
+          // If dual language, add duplicate row first (highlighted via a flag)
+          if (lang.dual) {
+            outputRows.push({ ...baseRow, 'Dual Language Row': 'YES', 'Language': lang.dual });
+          }
+
+          outputRows.push({ ...baseRow, 'Language': lang.primary || 'EN' });
+        });
+      });
+
+      // ── Build output workbook ──
+      const newWB = XLSX.utils.book_new();
+
+      // Copy all original sheets
+      fixtureWB.SheetNames.forEach(name => {
+        XLSX.utils.book_append_sheet(newWB, fixtureWB.Sheets[name], name);
+      });
+
+      // Add the processed distro sheet
+      const outputSheet = XLSX.utils.json_to_sheet(outputRows);
+
+      // Yellow-highlight dual language rows (col index for 'Dual Language Row')
+      const headers = outputRows.length ? Object.keys(outputRows[0]) : [];
+      const dualColIdx = headers.indexOf('Dual Language Row');
+      outputRows.forEach((r, i) => {
+        if (r['Dual Language Row'] === 'YES') {
+          headers.forEach((h, j) => {
+            const cellAddr = XLSX.utils.encode_cell({ r: i + 1, c: j });
+            if (!outputSheet[cellAddr]) return;
+            outputSheet[cellAddr].s = {
+              fill: { fgColor: { rgb: 'FFFFE066' } },
+              font: { bold: true }
+            };
+          });
+        }
+      });
+
+      XLSX.utils.book_append_sheet(newWB, outputSheet, '2x3 Signage Distro');
+      return newWB;
+    }
+
+    function setStatus(type, msg, showDownload = false) {
+      const bar = document.getElementById('statusBar');
+      bar.className = 'status-bar ' + type;
+      bar.innerHTML = msg;
+      bar.style.display = 'flex';
+    }
+  </script>
+
+</body>
+</html>

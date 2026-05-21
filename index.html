@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VM Distro Tools</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: #e2e2e2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 52px;
+    }
+
+    .hero svg {
+      display: block;
+      margin: 0 auto 20px;
+    }
+
+    .hero h1 {
+      font-size: 34px;
+      font-weight: 700;
+      color: #1d1d1f;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: #6e6e73;
+    }
+
+    .tools-row {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tool-card {
+      background: white;
+      border-radius: 18px;
+      padding: 28px 22px;
+      width: 172px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      text-decoration: none;
+      display: block;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.13);
+    }
+
+    .tool-card.featured {
+      width: 210px;
+      padding: 32px 26px;
+    }
+
+    .tool-card.disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    .tool-card.disabled:hover {
+      transform: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+
+    .tool-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-card.featured .tool-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      margin-bottom: 18px;
+    }
+
+    .tool-icon svg { width: 30px; height: 30px; fill: white; }
+
+    .tool-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 6px;
+    }
+
+    .tool-card.featured h3 { font-size: 17px; margin-bottom: 8px; }
+
+    .tool-card .desc {
+      font-size: 13px;
+      color: #6e6e73;
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+
+    .open-link {
+      color: #0071e3;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      color: #6e6e73;
+      background: #f0f0f0;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: 10px;
+    }
+
+    .bg-blue   { background: #2563eb; }
+    .bg-green  { background: #16a34a; }
+    .bg-orange { background: #ea580c; }
+    .bg-purple { background: #7c3aed; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 28h48a4 4 0 0 1 4 4v22a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V32a4 4 0 0 1 4-4z" stroke="#1d1d1f" stroke-width="3" stroke-linejoin="round" fill="none"/>
+      <path d="M26 28V22a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v6" stroke="#1d1d1f" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <line x1="8" y1="44" x2="64" y2="44" stroke="#1d1d1f" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <h1>VM Distro Tools</h1>
+    <p>Select a tool to get started</p>
+  </div>
+
+  <div class="tools-row">
+
+    <a href="signage/" class="tool-card featured">
+      <div class="tool-icon bg-blue">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="3" width="20" height="7" rx="1"/>
+          <rect x="2" y="14" width="13" height="7" rx="1"/>
+        </svg>
+      </div>
+      <h3>2×3 Signage</h3>
+      <p class="desc">Generate fixture counts and language distro for 2×3 signage</p>
+      <span class="open-link">Open</span>
+    </a>
+
+    <div class="tool-card disabled">
+      <div class="tool-icon bg-green">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/>
+        </svg>
+      </div>
+      <h3>Demo Distro</h3>
+      <span class="badge">Coming Soon</span>
+    </div>
+
+    <div class="tool-card disabled">
+      <div class="tool-icon bg-orange">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm.5 5v6l4 2.4-.8 1.3L11 14V7h1.5z"/>
+        </svg>
+      </div>
+      <h3>More Tools</h3>
+      <span class="badge">Coming Soon</span>
+    </div>
+
+  </div>
+
+</body>
+</html>
