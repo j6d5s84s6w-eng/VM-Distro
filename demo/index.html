@@ -280,6 +280,48 @@
     .field input:focus { border-color: #16a34a; }
     .field .hint { font-size: 12px; color: #9ca3af; }
 
+    /* Cohorts list */
+    .cohorts-section { margin-bottom: 16px; }
+    .cohorts-section .cohorts-label { font-size: 13px; font-weight: 500; color: #374151; display: block; margin-bottom: 4px; }
+    .cohorts-section .cohorts-hint { font-size: 12px; color: #9ca3af; display: block; margin-bottom: 10px; }
+    .cohort-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 36px;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 6px;
+    }
+    .cohort-row .field { gap: 4px; }
+    .cohort-row .field label { font-size: 12px; color: #6b7280; font-weight: 500; }
+    .cohort-row .field input { padding: 8px 12px; font-size: 14px; }
+    .cohort-preview { font-size: 11px; color: #9ca3af; margin: -2px 0 12px 2px; min-height: 14px; }
+    .cohort-preview.error { color: #dc2626; }
+    .cohort-row .remove-btn {
+      width: 36px; height: 38px;
+      border: 1.5px solid #e5e7eb;
+      background: #fff;
+      color: #9ca3af;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+    .cohort-row .remove-btn:hover:not(:disabled) { border-color: #fca5a5; color: #dc2626; background: #fef2f2; }
+    .cohort-row .remove-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .add-cohort-btn {
+      padding: 8px 14px;
+      background: #fff;
+      border: 1.5px dashed #d1d5db;
+      border-radius: 10px;
+      color: #374151;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .add-cohort-btn:hover { border-color: #16a34a; color: #16a34a; }
+
     /* Generate */
     .generate-btn {
       padding: 12px 32px;
@@ -418,7 +460,7 @@
                   <ul>
                     <li>For each product + color combination, enter how many units go on a single fixture</li>
                     <li>Reference your merchandising strategy to determine quantities per fixture type (e.g. 10ft table vs 12ft table)</li>
-                    <li>Cohort 1 (≤10ft tables) and Cohort 2 (≥12ft tables) may have different quantities — enter both</li>
+                    <li>Different cohorts (table-size ranges) may have different quantities — enter a value for each cohort that applies</li>
                     <li>Leave blank if a product does not appear on a given fixture type</li>
                   </ul>
                 </div>
@@ -496,7 +538,7 @@
               <div class="drop-zone" id="zone-fill" ondragover="onDrag(event,'zone-fill')" ondragleave="offDrag('zone-fill')" ondrop="onDrop(event,'fill')">
                 <input type="file" accept=".xlsx,.xls" onchange="loadFile(event,'fill')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l9 6 9-6"/></svg>
-                <h3>Fixture Fill file</h3>
+                <h3>Fixture Fill file <span style="font-weight:400;color:#9ca3af;">(optional)</span></h3>
                 <p>.xlsx — Avenues / store layouts</p>
                 <div class="loaded-name" id="name-fill"></div>
               </div>
@@ -527,24 +569,6 @@
                 <input type="text" id="forecastPeriod" placeholder="e.g. JUN26" oninput="checkReady()">
               </div>
               <div class="field">
-                <label>Cohort 1 — Max Table Size (ft)</label>
-                <input type="number" id="cohort1Max" value="10" oninput="checkReady()">
-                <span class="hint">Tables this size and under</span>
-              </div>
-              <div class="field">
-                <label>Cohort 1 — Units per Table</label>
-                <input type="number" id="cohort1Units" value="2" oninput="checkReady()">
-              </div>
-              <div class="field">
-                <label>Cohort 2 — Min Table Size (ft)</label>
-                <input type="number" id="cohort2Min" value="12" oninput="checkReady()">
-                <span class="hint">Tables this size and above</span>
-              </div>
-              <div class="field">
-                <label>Cohort 2 — Units per Table</label>
-                <input type="number" id="cohort2Units" value="3" oninput="checkReady()">
-              </div>
-              <div class="field">
                 <label>Buffer %</label>
                 <input type="number" id="bufferPct" value="20" oninput="checkReady()">
               </div>
@@ -557,6 +581,13 @@
                 <input type="text" id="outputName" placeholder="e.g. JUN26_Demo_Distro" oninput="checkReady()">
                 <span class="hint">No need to add .xlsx</span>
               </div>
+            </div>
+
+            <div class="cohorts-section">
+              <span class="cohorts-label">Cohorts</span>
+              <span class="cohorts-hint">One row per cohort. Table sizes accept any mix: <code>10</code>, <code>8-12</code>, <code>12+</code>, <code>≤10</code>, or comma lists like <code>6, 8-12, 14+</code>.</span>
+              <div id="cohortsContainer"></div>
+              <button type="button" class="add-cohort-btn" onclick="addCohort()">+ Add cohort</button>
             </div>
           </div>
         </div>
@@ -624,8 +655,106 @@
 
     function v(id) { return document.getElementById(id).value.trim(); }
 
+    /* Cohorts: dynamic list of {sizes, units}. `sizes` is a free-form string. */
+    let cohorts = [
+      { sizes: '0-10', units: 2 },
+      { sizes: '12+',  units: 3 },
+    ];
+
+    /* Parse a cohort sizes string into a list of match tokens.
+       Accepts: "10", "8-12", "12+", "≤10" / "<=10", "≥12" / ">=12", and comma-lists. */
+    function parseSizes(input) {
+      const raw = (input || '').trim();
+      if (!raw) return { tokens: [], valid: false, preview: '' };
+      const parts = raw.split(',').map(s => s.trim()).filter(Boolean);
+      const tokens = [];
+      for (const p of parts) {
+        let m;
+        if (m = p.match(/^(\d+(?:\.\d+)?)\s*\+$/))                          { tokens.push({ k:'gte', v:parseFloat(m[1]) }); continue; }
+        if (m = p.match(/^(?:≤|<=|<)\s*(\d+(?:\.\d+)?)$/))                  { tokens.push({ k:'lte', v:parseFloat(m[1]) }); continue; }
+        if (m = p.match(/^(?:≥|>=|>)\s*(\d+(?:\.\d+)?)$/))                  { tokens.push({ k:'gte', v:parseFloat(m[1]) }); continue; }
+        if (m = p.match(/^(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)$/))      { tokens.push({ k:'range', min:parseFloat(m[1]), max:parseFloat(m[2]) }); continue; }
+        if (m = p.match(/^(\d+(?:\.\d+)?)$/))                               { tokens.push({ k:'eq', v:parseFloat(m[1]) }); continue; }
+        return { tokens: [], valid: false, error: `Can't read "${p}"` };
+      }
+      const preview = tokens.map(t =>
+        t.k === 'eq'    ? `${t.v}ft`
+      : t.k === 'range' ? `${t.min}–${t.max}ft`
+      : t.k === 'gte'   ? `${t.v}ft and up`
+      : t.k === 'lte'   ? `${t.v}ft and under`
+      : '?'
+      ).join(', ');
+      return { tokens, valid: true, preview };
+    }
+
+    function cohortMatches(size, tokens) {
+      return tokens.some(t =>
+        t.k === 'eq'    ? size === t.v
+      : t.k === 'range' ? size >= t.min && size <= t.max
+      : t.k === 'gte'   ? size >= t.v
+      : t.k === 'lte'   ? size <= t.v
+      : false
+      );
+    }
+
+    function renderCohorts() {
+      const wrap = document.getElementById('cohortsContainer');
+      wrap.innerHTML = cohorts.map((c, i) => {
+        const parsed = parseSizes(c.sizes);
+        const previewClass = parsed.error ? 'cohort-preview error' : 'cohort-preview';
+        const previewText  = parsed.error  ? parsed.error
+                           : parsed.valid  ? `Matches: ${parsed.preview}`
+                           : '';
+        return `
+          <div class="cohort-row">
+            <div class="field">
+              <label>${i === 0 ? 'Table Sizes' : 'Sizes'}</label>
+              <input type="text" value="${c.sizes}" placeholder="e.g. 10, 8-12, 12+" oninput="updateCohort(${i}, 'sizes', this.value)">
+            </div>
+            <div class="field">
+              <label>${i === 0 ? 'Units per Table' : 'Units'}</label>
+              <input type="number" value="${c.units}" oninput="updateCohort(${i}, 'units', this.value)">
+            </div>
+            <button type="button" class="remove-btn" onclick="removeCohort(${i})" ${cohorts.length === 1 ? 'disabled' : ''} title="Remove cohort">✕</button>
+          </div>
+          <div id="cohort-preview-${i}" class="${previewClass}">${previewText}</div>
+        `;
+      }).join('');
+    }
+
+    function refreshPreview(i) {
+      const el = document.getElementById(`cohort-preview-${i}`);
+      if (!el) return;
+      const parsed = parseSizes(cohorts[i].sizes);
+      el.className = parsed.error ? 'cohort-preview error' : 'cohort-preview';
+      el.textContent = parsed.error  ? parsed.error
+                     : parsed.valid  ? `Matches: ${parsed.preview}`
+                     : '';
+    }
+
+    function updateCohort(i, key, val) {
+      cohorts[i][key] = key === 'units' ? (parseInt(val) || 0) : val;
+      if (key === 'sizes') refreshPreview(i);
+      checkReady();
+    }
+
+    function addCohort() {
+      cohorts.push({ sizes: '', units: 1 });
+      renderCohorts();
+      checkReady();
+    }
+
+    function removeCohort(i) {
+      if (cohorts.length === 1) return;
+      cohorts.splice(i, 1);
+      renderCohorts();
+      checkReady();
+    }
+
+    renderCohorts();
+
     function checkReady() {
-      const ready = files.template && files.fixture && files.fill && v('wwTab') && v('outputName');
+      const ready = files.template && files.fixture && v('wwTab') && v('outputName');
       const btn = document.getElementById('generateBtn');
       btn.classList.toggle('ready', !!ready);
       btn.disabled = !ready;
@@ -665,7 +794,7 @@
     function buildDistro() {
       const fixtureWB  = files.fixture.wb;
       const templateWB = files.template.wb;
-      const fillWB     = files.fill.wb;
+      const fillWB     = files.fill ? files.fill.wb : null;
       const wwTabName  = v('wwTab');
 
       if (!fixtureWB.SheetNames.includes(wwTabName))
@@ -674,21 +803,24 @@
       const rows = XLSX.utils.sheet_to_json(fixtureWB.Sheets[wwTabName], { defval: '' });
       if (!rows.length) throw new Error('No data found in the WW Fixture Counts tab.');
 
-      const cohort1Max   = parseInt(v('cohort1Max'))   || 10;
-      const cohort2Min   = parseInt(v('cohort2Min'))   || 12;
-      const cohort1Units = parseInt(v('cohort1Units')) || 2;
-      const cohort2Units = parseInt(v('cohort2Units')) || 3;
       const bufferPct    = parseFloat(v('bufferPct'))  / 100 || 0.2;
       const instoreBuf   = parseInt(v('instoreBuffer')) || 1;
       const period       = v('forecastPeriod') || '';
+
+      const parsedCohorts = cohorts.map(c => ({ tokens: parseSizes(c.sizes).tokens, units: parseInt(c.units) || 0 }));
 
       const outputRows = rows.map(row => {
         const keys = Object.keys(row);
         const tableKey = keys.find(k => k.toLowerCase().includes('table')) || keys[0];
         const tableSize = parseFloat(row[tableKey] || 0);
 
-        const unitsPerTable = tableSize <= cohort1Max ? cohort1Units
-                            : tableSize >= cohort2Min ? cohort2Units : 0;
+        let unitsPerTable = 0;
+        for (const c of parsedCohorts) {
+          if (cohortMatches(tableSize, c.tokens)) {
+            unitsPerTable = c.units;
+            break;
+          }
+        }
 
         const baseQty    = Math.round(tableSize * unitsPerTable);
         const buffer     = Math.ceil(baseQty * bufferPct);
@@ -716,8 +848,11 @@
       });
 
       // Carry over avenue assignments from fill file
-      const fillSheet = fillWB.Sheets[fillWB.SheetNames[0]];
-      if (fillSheet) XLSX.utils.book_append_sheet(outputWB, fillSheet, 'Avenue Assignments');
+      // Carry over avenue assignments from fill file (optional)
+      if (fillWB) {
+        const fillSheet = fillWB.Sheets[fillWB.SheetNames[0]];
+        if (fillSheet) XLSX.utils.book_append_sheet(outputWB, fillSheet, 'Avenue Assignments');
+      }
 
       return outputWB;
     }
