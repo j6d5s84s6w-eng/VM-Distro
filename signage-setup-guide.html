@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signage Skill — Setup Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      padding: 48px 24px;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 48px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .icon {
+      width: 56px;
+      height: 56px;
+      background: #2563eb;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon svg { width: 28px; height: 28px; fill: white; }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #6e6e73;
+      margin-bottom: 36px;
+      margin-left: 72px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e5e5ea;
+      margin: 28px 0;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #8e8e93;
+      margin-bottom: 16px;
+    }
+
+    .steps { display: flex; flex-direction: column; gap: 20px; }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: #2563eb;
+      color: white;
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-content h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 14px;
+      color: #3a3a3c;
+      line-height: 1.5;
+    }
+
+    .code {
+      display: inline-block;
+      background: #f0f0f5;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-family: 'SF Mono', 'Menlo', monospace;
+      font-size: 13px;
+      color: #2563eb;
+    }
+
+    .tip {
+      background: #eff6ff;
+      border-left: 3px solid #2563eb;
+      border-radius: 0 10px 10px 0;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: #1d4ed8;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+
+    .tip strong { font-weight: 600; }
+
+    .variables {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .var-card {
+      background: #f5f5f7;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .var-card .var-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 3px;
+    }
+
+    .var-card .var-desc {
+      font-size: 12px;
+      color: #6e6e73;
+      line-height: 1.4;
+    }
+
+    .var-card .var-example {
+      font-size: 11px;
+      color: #2563eb;
+      margin-top: 4px;
+      font-family: 'SF Mono', 'Menlo', monospace;
+    }
+
+    .footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e5ea;
+      font-size: 13px;
+      color: #8e8e93;
+      text-align: center;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; padding: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="header">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="7" rx="1"/><rect x="2" y="14" width="13" height="7" rx="1"/></svg>
+      </div>
+      <h1>2×3 Signage Skill</h1>
+    </div>
+    <p class="subtitle">Setup &amp; Usage Guide — VM Team</p>
+
+    <!-- Part 1: Setup -->
+    <p class="section-label">Part 1 — One-Time Setup</p>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Make sure Claude Code is installed</h3>
+          <p>Open your terminal and type <span class="code">claude --version</span>. If you see a version number, you're good. If not, install Claude Code first.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Get the skill file from Omaira</h3>
+          <p>You'll receive a file called <span class="code">signage.md</span> — save it somewhere you can find it (Desktop is fine for now).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Place it in the Claude commands folder</h3>
+          <p>Open <strong>Finder</strong>, then in the menu bar click <strong>Go → Go to Folder</strong> (or press <strong>Shift + Cmd + G</strong>).<br><br>
+          Type <span class="code">~/.claude/commands/</span> and press <strong>Enter</strong>.<br><br>
+          Drag the <span class="code">signage.md</span> file into this folder.</p>
+          <div class="tip">
+            <strong>Folder doesn't exist?</strong> Go to <span class="code">~/.claude/</span> first, create a new folder called <span class="code">commands</span>, then drop the file in.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Make sure you have the Python script</h3>
+          <p>You'll need <span class="code">apply_languages_new.py</span> saved on your Mac. Ask Omaira for the file path if you're unsure where it lives on your machine.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h3>Restart Claude Code</h3>
+          <p>Close and reopen Claude Code — it picks up new skills on startup.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Part 2: Using the skill -->
+    <p class="section-label">Part 2 — Using the Skill</p>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Type <span class="code">/signage</span> in Claude Code</h3>
+          <p>The skill will load and prompt you to fill in your variables.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Fill in the variables</h3>
+          <div class="variables">
+            <div class="var-card">
+              <div class="var-name">Fixture Count File</div>
+              <div class="var-desc">Full path to your WW fixture count Excel file</div>
+              <div class="var-example">/Users/you/Desktop/JUN26_Fixture.xlsx</div>
+            </div>
+            <div class="var-card">
+              <div class="var-name">WW Fixture Counts Tab</div>
+              <div class="var-desc">Exact name of the tab in the file</div>
+              <div class="var-example">WW Fixture Counts JUN26</div>
+            </div>
+            <div class="var-card">
+              <div class="var-name">Country / Store Override</div>
+              <div class="var-desc">Any rule changes for this run — leave blank if none</div>
+              <div class="var-example">omit if no changes</div>
+            </div>
+            <div class="var-card">
+              <div class="var-name">Output File Name</div>
+              <div class="var-desc">What to name the generated output file</div>
+              <div class="var-example">JUN26_Signage_Output</div>
+            </div>
+            <div class="var-card">
+              <div class="var-name">Primary Language Column</div>
+              <div class="var-desc">Before running the skill, manually add a column called "Primary Language" to your Fixture Count file</div>
+              <div class="var-example">Add to Fixture Count file first</div>
+            </div>
+            <div class="var-card">
+              <div class="var-name">Secondary Language Column</div>
+              <div class="var-desc">Before running the skill, manually add a column called "Secondary Language" to your Fixture Count file</div>
+              <div class="var-example">Add to Fixture Count file first</div>
+            </div>
+          </div>
+          <div class="tip" style="margin-top:14px;">
+            <strong>China Division Note:</strong> Stores in China are automatically split into two divisions — <strong>Shanghai</strong> and <strong>Beijing</strong>. Make sure your GLS sheet includes the China division column so the lookup works correctly.
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Hit Enter — Claude does the rest</h3>
+          <p>Claude will run <span class="code">apply_languages_new.py</span> with your inputs and generate the output file automatically.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="footer">
+      Built by Omaira · VM Team · Questions? Reach out before the run 🙂
+    </div>
+
+  </div>
+</body>
+</html>

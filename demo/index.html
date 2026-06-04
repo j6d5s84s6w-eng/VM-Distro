@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Distro — VM Distro Tools</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: #e2e2e2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 52px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1d1d1f;
+      text-decoration: none;
+    }
+
+    .nav-left svg { width: 18px; height: 18px; }
+
+    .nav-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+
+    .nav-right { display: flex; gap: 8px; }
+
+    .btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid #d1d1d6;
+      background: white;
+      color: #1d1d1f;
+      transition: background 0.15s;
+    }
+
+    .btn:hover { background: #f5f5f7; }
+
+    .btn.primary {
+      background: #16a34a;
+      border-color: #16a34a;
+      color: white;
+    }
+
+    .btn.primary:hover { background: #15803d; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 24px 60px;
+      gap: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 32px;
+      width: 100%;
+      max-width: 680px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+
+    .card h2 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 20px;
+    }
+
+    .drop-zone {
+      border: 2px dashed #c7c7cc;
+      border-radius: 14px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #fafafa;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over { border-color: #16a34a; background: #f0fdf4; }
+    .drop-zone.loaded { border-color: #16a34a; background: #f0fdf4; }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #16a34a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+    }
+
+    .drop-icon svg { width: 24px; height: 24px; fill: white; }
+
+    .drop-zone h3 { font-size: 16px; font-weight: 600; color: #1d1d1f; margin-bottom: 6px; }
+    .drop-zone p { font-size: 13px; color: #6e6e73; margin-bottom: 4px; }
+    .drop-zone .file-name { font-size: 13px; font-weight: 500; color: #16a34a; margin-top: 8px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label { font-size: 13px; font-weight: 500; color: #3a3a3c; }
+
+    .field input, .field select {
+      padding: 10px 14px;
+      border: 1.5px solid #d1d1d6;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1d1d1f;
+      background: white;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus, .field select:focus { border-color: #16a34a; }
+    .field .hint { font-size: 12px; color: #8e8e93; }
+
+    .sign-rows { display: flex; flex-direction: column; gap: 10px; }
+
+    .sign-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .remove-btn {
+      width: 34px;
+      height: 38px;
+      border: 1.5px solid #fecaca;
+      background: #fff5f5;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #dc2626;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .remove-btn:hover { background: #fee2e2; }
+
+    .add-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #16a34a;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 0;
+      margin-top: 4px;
+    }
+
+    .status-bar {
+      display: none;
+      width: 100%;
+      max-width: 680px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status-bar.info { background: #f0fdf4; color: #15803d; display: flex; }
+    .status-bar.success { background: #f0fdf4; color: #15803d; display: flex; align-items: center; gap: 12px; }
+    .status-bar.error { background: #fff1f2; color: #be123c; display: flex; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="../" class="nav-left">
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 3L5 9l6 6" stroke="#1d1d1f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      VM Distro Tools
+    </a>
+    <span class="nav-title">Demo Distro</span>
+    <div class="nav-right">
+      <button class="btn primary" id="generateBtn" onclick="generate()" disabled>Generate</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- File Upload -->
+    <div class="card">
+      <h2>Upload File</h2>
+      <div class="drop-zone" id="fixtureZone" ondragover="onDrag(event,'fixtureZone')" ondragleave="offDrag('fixtureZone')" ondrop="onDrop(event)">
+        <input type="file" accept=".xlsx,.xls" onchange="loadFile(event)">
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 13h8v1.5H8V13zm0 3h5v1.5H8V16zm0-6h3v1.5H8V10z"/></svg>
+        </div>
+        <h3>Fixture Count Handoff</h3>
+        <p>Drop your Excel file here, or click to browse</p>
+        <p style="font-size:12px;color:#8e8e93;">Provided by GEO VM team</p>
+        <div class="file-name" id="fixtureName"></div>
+      </div>
+    </div>
+
+    <!-- Sheet Config -->
+    <div class="card">
+      <h2>Sheet Configuration</h2>
+      <div class="two-col">
+        <div class="field">
+          <label>Line of Business (LOB) Tab</label>
+          <input type="text" id="lobTab" placeholder="e.g. Mac" oninput="checkReady()">
+          <span class="hint">Tab name in your Fixture Count file</span>
+        </div>
+        <div class="field">
+          <label>WW Fixture Counts Tab</label>
+          <input type="text" id="wwTab" placeholder="e.g. WW Fixture Counts JUN26" oninput="checkReady()">
+          <span class="hint">Tab with store-level fixture data</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cohort Rules -->
+    <div class="card">
+      <h2>Cohort Rules</h2>
+      <div class="two-col">
+        <div class="field">
+          <label>Cohort 1 — Max Table Size (ft)</label>
+          <input type="number" id="cohort1Max" value="10" oninput="checkReady()">
+          <span class="hint">Tables this size and under → Cohort 1</span>
+        </div>
+        <div class="field">
+          <label>Cohort 1 — Units per Table</label>
+          <input type="number" id="cohort1Units" value="2" oninput="checkReady()">
+        </div>
+        <div class="field">
+          <label>Cohort 2 — Min Table Size (ft)</label>
+          <input type="number" id="cohort2Min" value="12" oninput="checkReady()">
+          <span class="hint">Tables this size and above → Cohort 2</span>
+        </div>
+        <div class="field">
+          <label>Cohort 2 — Units per Table</label>
+          <input type="number" id="cohort2Units" value="3" oninput="checkReady()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo Units -->
+    <div class="card">
+      <h2>Demo Units</h2>
+      <div class="sign-rows" id="unitRows"></div>
+      <button class="add-btn" onclick="addUnitRow()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#16a34a" stroke-width="1.5"/><path d="M8 5v6M5 8h6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Add Demo Unit
+      </button>
+    </div>
+
+    <!-- Forecast & Buffers -->
+    <div class="card">
+      <h2>Forecast &amp; Buffers</h2>
+      <div class="two-col">
+        <div class="field">
+          <label>Forecast Period</label>
+          <input type="text" id="forecastPeriod" placeholder="e.g. JUN26" oninput="checkReady()">
+          <span class="hint">Used to label the forecast output</span>
+        </div>
+        <div class="field">
+          <label>Forecast Multiplier</label>
+          <input type="number" id="forecastMultiplier" value="1" step="0.1" oninput="checkReady()">
+          <span class="hint">Multiply quantities for future forecast (e.g. 1.1 = +10%)</span>
+        </div>
+        <div class="field">
+          <label>Buffer %</label>
+          <input type="number" id="bufferPct" value="20" oninput="checkReady()">
+          <span class="hint">Applied to total merchandised quantity</span>
+        </div>
+        <div class="field">
+          <label>In-Store Buffer (flat add)</label>
+          <input type="number" id="instoreBuffer" value="1" oninput="checkReady()">
+          <span class="hint">Added after buffer, rounded up</span>
+        </div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label>Output File Name</label>
+          <input type="text" id="outputName" placeholder="e.g. JUN26_Demo_Distro" oninput="checkReady()">
+          <span class="hint">No need to add .xlsx — it will be added automatically</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar" id="statusBar"></div>
+
+  </main>
+
+  <script>
+    const state = { fixtureWB: null };
+
+    window.onload = () => addUnitRow();
+
+    function loadFile(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        state.fixtureWB = XLSX.read(e.target.result, { type: 'array' });
+        document.getElementById('fixtureZone').classList.add('loaded');
+        document.getElementById('fixtureName').textContent = '✓ ' + file.name;
+        checkReady();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function onDrag(evt, id) { evt.preventDefault(); document.getElementById(id).classList.add('drag-over'); }
+    function offDrag(id) { document.getElementById(id).classList.remove('drag-over'); }
+    function onDrop(evt) {
+      evt.preventDefault();
+      offDrag('fixtureZone');
+      const file = evt.dataTransfer.files[0];
+      if (!file) return;
+      loadFile({ target: { files: [file] } });
+    }
+
+    function addUnitRow() {
+      const container = document.getElementById('unitRows');
+      const row = document.createElement('div');
+      row.className = 'sign-row';
+      row.innerHTML = `
+        <div class="field">
+          <label>Demo Unit Name</label>
+          <input type="text" placeholder="e.g. MacBook Pro 14" oninput="checkReady()">
+        </div>
+        <div class="field">
+          <label>Part Number</label>
+          <input type="text" placeholder="e.g. MRX33LL/A" oninput="checkReady()">
+        </div>
+        <button class="remove-btn" onclick="this.parentElement.remove(); checkReady();" title="Remove">×</button>
+      `;
+      container.appendChild(row);
+      checkReady();
+    }
+
+    function checkReady() {
+      const ready =
+        state.fixtureWB &&
+        v('lobTab') && v('wwTab') && v('outputName') &&
+        document.querySelectorAll('#unitRows .sign-row').length > 0;
+      document.getElementById('generateBtn').disabled = !ready;
+    }
+
+    function v(id) { return document.getElementById(id).value.trim(); }
+
+    function generate() {
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      btn.textContent = 'Processing…';
+      setStatus('info', 'Processing your file…');
+
+      setTimeout(() => {
+        try {
+          const result = processDemo();
+          XLSX.writeFile(result, (v('outputName') || 'demo_distro') + '.xlsx');
+          setStatus('success', 'File generated successfully!');
+        } catch (err) {
+          setStatus('error', 'Error: ' + err.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Generate';
+          checkReady();
+        }
+      }, 50);
+    }
+
+    function processDemo() {
+      const fixtureWB = state.fixtureWB;
+      const wwTabName = v('wwTab');
+
+      if (!fixtureWB.SheetNames.includes(wwTabName))
+        throw new Error(`Tab "${wwTabName}" not found. Available tabs: ${fixtureWB.SheetNames.join(', ')}`);
+
+      const fixtureSheet = fixtureWB.Sheets[wwTabName];
+      const rows = XLSX.utils.sheet_to_json(fixtureSheet, { defval: '' });
+      if (!rows.length) throw new Error('No data found in the WW Fixture Counts tab.');
+
+      const cohort1Max       = parseInt(v('cohort1Max'))         || 10;
+      const cohort2Min       = parseInt(v('cohort2Min'))         || 12;
+      const cohort1Units     = parseInt(v('cohort1Units'))       || 2;
+      const cohort2Units     = parseInt(v('cohort2Units'))       || 3;
+      const bufferPct        = parseFloat(v('bufferPct'))        / 100 || 0.2;
+      const instoreBuf       = parseInt(v('instoreBuffer'))      || 1;
+      const forecastMult     = parseFloat(v('forecastMultiplier')) || 1;
+      const forecastPeriod   = v('forecastPeriod') || '';
+
+      const unitRows = Array.from(document.querySelectorAll('#unitRows .sign-row'));
+      const units = unitRows.map(r => {
+        const inputs = r.querySelectorAll('input');
+        return { name: inputs[0].value.trim(), partNum: inputs[1].value.trim() };
+      }).filter(u => u.name);
+
+      const outputRows = [];
+
+      rows.forEach(row => {
+        const keys = Object.keys(row);
+        const tableKey = keys.find(k => k.toLowerCase().includes('table'));
+        const tableSize = parseFloat(row[tableKey] || 0);
+
+        let unitsPerTable = 0;
+        if (tableSize <= cohort1Max) unitsPerTable = cohort1Units;
+        else if (tableSize >= cohort2Min) unitsPerTable = cohort2Units;
+
+        const baseQty      = Math.round(tableSize * unitsPerTable);
+        const forecastQty  = Math.round(baseQty * forecastMult);
+        const buffer       = Math.ceil(forecastQty * bufferPct);
+        const grandTotal   = forecastQty + buffer + instoreBuf;
+
+        units.forEach(unit => {
+          outputRows.push({
+            ...row,
+            'Demo Unit':          unit.name,
+            'Part Number':        unit.partNum,
+            'Units per Table':    unitsPerTable,
+            'Base Qty':           baseQty,
+            [`Forecast Qty (${forecastPeriod})`]: forecastQty,
+            'Buffer (20%)':       buffer,
+            'In-Store Buffer (+1)': instoreBuf,
+            'Grand Total':        grandTotal,
+          });
+        });
+      });
+
+      const newWB = XLSX.utils.book_new();
+      fixtureWB.SheetNames.forEach(name => {
+        XLSX.utils.book_append_sheet(newWB, fixtureWB.Sheets[name], name);
+      });
+      XLSX.utils.book_append_sheet(newWB, XLSX.utils.json_to_sheet(outputRows), 'Demo Distro');
+      return newWB;
+    }
+
+    function setStatus(type, msg) {
+      const bar = document.getElementById('statusBar');
+      bar.className = 'status-bar ' + type;
+      bar.innerHTML = msg;
+      bar.style.display = 'flex';
+    }
+  </script>
+
+</body>
+</html>
