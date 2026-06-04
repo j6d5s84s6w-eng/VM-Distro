@@ -10,22 +10,21 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-      background: #e2e2e2;
+      background: #f0f2f5;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
     nav {
-      background: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.9);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(0,0,0,0.08);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
-      height: 52px;
+      padding: 0 32px;
+      height: 56px;
       position: sticky;
       top: 0;
       z-index: 100;
@@ -42,71 +41,205 @@
     }
 
     .nav-left svg { width: 18px; height: 18px; }
+    .nav-title { font-size: 15px; font-weight: 600; color: #1d1d1f; }
 
-    .nav-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #1d1d1f;
+    .page-header {
+      background: linear-gradient(135deg, #e8f5ee 0%, #f5faf7 100%);
+      padding: 40px 32px 36px;
+      border-bottom: 1px solid #d0e8da;
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
 
-    .nav-right { display: flex; gap: 8px; }
-
-    .btn {
-      padding: 7px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1.5px solid #d1d1d6;
-      background: white;
-      color: #1d1d1f;
-      transition: background 0.15s;
-    }
-
-    .btn:hover { background: #f5f5f7; }
-
-    .btn.primary {
+    .header-icon {
+      width: 64px;
+      height: 64px;
       background: #16a34a;
-      border-color: #16a34a;
-      color: white;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
-    .btn.primary:hover { background: #15803d; }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .header-icon svg { width: 32px; height: 32px; fill: white; }
+    .page-header h1 { font-size: 28px; font-weight: 700; color: #1d1d1f; margin-bottom: 4px; }
+    .page-header p { font-size: 15px; color: #6e6e73; }
 
     main {
       flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+    }
+
+    .steps-list { display: flex; flex-direction: column; }
+
+    .step-wrapper {
+      display: flex;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .step-left {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 24px 60px;
-      gap: 24px;
+      flex-shrink: 0;
+      width: 40px;
     }
 
-    .card {
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #16a34a;
       background: white;
-      border-radius: 18px;
-      padding: 32px;
-      width: 100%;
-      max-width: 680px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: #16a34a;
+      flex-shrink: 0;
+      z-index: 1;
     }
 
-    .card h2 {
-      font-size: 17px;
-      font-weight: 600;
+    .step-line {
+      width: 2px;
+      flex: 1;
+      background: #d0e8da;
+      margin: 4px 0;
+    }
+
+    .step-content-wrapper {
+      flex: 1;
+      padding-bottom: 32px;
+    }
+
+    .step-card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 32px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .step-card h2 {
+      font-size: 20px;
+      font-weight: 700;
       color: #1d1d1f;
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: #6e6e73;
+      line-height: 1.6;
       margin-bottom: 20px;
     }
 
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #16a34a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 100px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    .download-btn:hover { background: #15803d; }
+    .download-btn svg { width: 18px; height: 18px; fill: white; }
+
+    /* Tab instructions */
+    .tab-instructions { display: flex; flex-direction: column; gap: 12px; }
+
+    .tab-block {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .tab-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .tab-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .tab-header strong { font-size: 14px; font-weight: 600; color: #1d1d1f; }
+    .tab-header span { font-size: 13px; color: #6e6e73; }
+
+    .tab-body { padding: 14px 16px; }
+
+    .tab-body ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tab-body ul li {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.5;
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-body ul li::before {
+      content: '→';
+      color: #9ca3af;
+      flex-shrink: 0;
+    }
+
+    .tip-row {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #15803d;
+      margin-top: 12px;
+    }
+
+    .tip-row code {
+      background: #dcfce7;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* Upload zones */
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
     .drop-zone {
-      border: 2px dashed #c7c7cc;
+      border: 2px dashed #c7cdd6;
       border-radius: 14px;
-      padding: 36px 20px;
+      padding: 28px 16px;
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
-      background: #fafafa;
+      background: #fafbfc;
       position: relative;
     }
 
@@ -122,232 +255,359 @@
       height: 100%;
     }
 
-    .drop-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: #16a34a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 14px;
-    }
+    .drop-zone svg { width: 32px; height: 32px; color: #9ca3af; margin: 0 auto 12px; display: block; }
+    .drop-zone h3 { font-size: 14px; font-weight: 600; color: #1d1d1f; margin-bottom: 4px; }
+    .drop-zone p { font-size: 12px; color: #9ca3af; }
+    .drop-zone .loaded-name { font-size: 12px; font-weight: 500; color: #16a34a; margin-top: 8px; }
 
-    .drop-icon svg { width: 24px; height: 24px; fill: white; }
-
-    .drop-zone h3 { font-size: 16px; font-weight: 600; color: #1d1d1f; margin-bottom: 6px; }
-    .drop-zone p { font-size: 13px; color: #6e6e73; margin-bottom: 4px; }
-    .drop-zone .file-name { font-size: 13px; font-weight: 500; color: #16a34a; margin-top: 8px; }
-
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    /* Cohort + forecast fields */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 
     .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 13px; font-weight: 500; color: #374151; }
 
-    .field label { font-size: 13px; font-weight: 500; color: #3a3a3c; }
-
-    .field input, .field select {
+    .field input {
       padding: 10px 14px;
-      border: 1.5px solid #d1d1d6;
+      border: 1.5px solid #d1d5db;
       border-radius: 10px;
       font-size: 15px;
       font-family: inherit;
       color: #1d1d1f;
-      background: white;
       outline: none;
       transition: border-color 0.15s;
     }
 
-    .field input:focus, .field select:focus { border-color: #16a34a; }
-    .field .hint { font-size: 12px; color: #8e8e93; }
+    .field input:focus { border-color: #16a34a; }
+    .field .hint { font-size: 12px; color: #9ca3af; }
 
-    .sign-rows { display: flex; flex-direction: column; gap: 10px; }
-
-    .sign-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap: 10px;
-      align-items: end;
+    /* Generate */
+    .generate-btn {
+      padding: 12px 32px;
+      background: #9ca3af;
+      color: white;
+      border: none;
+      border-radius: 100px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: not-allowed;
+      transition: background 0.2s;
     }
 
-    .remove-btn {
-      width: 34px;
-      height: 38px;
-      border: 1.5px solid #fecaca;
-      background: #fff5f5;
-      border-radius: 8px;
-      cursor: pointer;
-      color: #dc2626;
-      font-size: 18px;
+    .generate-btn.ready { background: #16a34a; cursor: pointer; }
+    .generate-btn.ready:hover { background: #15803d; }
+
+    /* Output */
+    .output-box {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 20px;
+      font-size: 14px;
+      color: #9ca3af;
+      min-height: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s;
     }
 
-    .remove-btn:hover { background: #fee2e2; }
+    .output-box.has-result {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      color: #1d1d1f;
+    }
 
-    .add-btn {
-      display: inline-flex;
+    .output-file {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #16a34a;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 6px 0;
-      margin-top: 4px;
-    }
-
-    .status-bar {
-      display: none;
+      justify-content: space-between;
       width: 100%;
-      max-width: 680px;
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 500;
+      background: white;
+      border-radius: 10px;
+      padding: 12px 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
 
-    .status-bar.info { background: #f0fdf4; color: #15803d; display: flex; }
-    .status-bar.success { background: #f0fdf4; color: #15803d; display: flex; align-items: center; gap: 12px; }
-    .status-bar.error { background: #fff1f2; color: #be123c; display: flex; }
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
   </style>
 </head>
 <body>
 
   <nav>
     <a href="../" class="nav-left">
-      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 18 18" fill="none">
         <path d="M11 3L5 9l6 6" stroke="#1d1d1f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       VM Distro Tools
     </a>
     <span class="nav-title">Demo Distro</span>
-    <div class="nav-right">
-      <button class="btn primary" id="generateBtn" onclick="generate()" disabled>Generate</button>
-    </div>
+    <div></div>
   </nav>
 
+  <div class="page-header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>
+    </div>
+    <div>
+      <h1>Demo Distro</h1>
+      <p>Generate fixture counts and demo distro output in minutes</p>
+    </div>
+  </div>
+
   <main>
+    <div class="steps-list">
 
-    <!-- File Upload -->
-    <div class="card">
-      <h2>Upload File</h2>
-      <div class="drop-zone" id="fixtureZone" ondragover="onDrag(event,'fixtureZone')" ondragleave="offDrag('fixtureZone')" ondrop="onDrop(event)">
-        <input type="file" accept=".xlsx,.xls" onchange="loadFile(event)">
-        <div class="drop-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 13h8v1.5H8V13zm0 3h5v1.5H8V16zm0-6h3v1.5H8V10z"/></svg>
+      <!-- Step 1: Download -->
+      <div class="step-wrapper">
+        <div class="step-left">
+          <div class="step-circle">1</div>
+          <div class="step-line"></div>
         </div>
-        <h3>Fixture Count Handoff</h3>
-        <p>Drop your Excel file here, or click to browse</p>
-        <p style="font-size:12px;color:#8e8e93;">Provided by GEO VM team</p>
-        <div class="file-name" id="fixtureName"></div>
-      </div>
-    </div>
-
-    <!-- Sheet Config -->
-    <div class="card">
-      <h2>Sheet Configuration</h2>
-      <div class="two-col">
-        <div class="field">
-          <label>Line of Business (LOB) Tab</label>
-          <input type="text" id="lobTab" placeholder="e.g. Mac" oninput="checkReady()">
-          <span class="hint">Tab name in your Fixture Count file</span>
-        </div>
-        <div class="field">
-          <label>WW Fixture Counts Tab</label>
-          <input type="text" id="wwTab" placeholder="e.g. WW Fixture Counts JUN26" oninput="checkReady()">
-          <span class="hint">Tab with store-level fixture data</span>
+        <div class="step-content-wrapper">
+          <div class="step-card">
+            <h2>Download the Input Template</h2>
+            <p class="step-desc">The Input Template is a structured Excel file. Each tab captures one piece of the distro — products, quantities, avenue allocations, and program overrides. Download it and open in Excel before filling out.</p>
+            <a href="../Input_Template.xlsx" download class="download-btn">
+              <svg viewBox="0 0 24 24"><path d="M12 16l-4-4h3V4h2v8h3l-4 4zm-7 4v-2h14v2H5z"/></svg>
+              Download Input Template
+            </a>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Cohort Rules -->
-    <div class="card">
-      <h2>Cohort Rules</h2>
-      <div class="two-col">
-        <div class="field">
-          <label>Cohort 1 — Max Table Size (ft)</label>
-          <input type="number" id="cohort1Max" value="10" oninput="checkReady()">
-          <span class="hint">Tables this size and under → Cohort 1</span>
+      <!-- Step 2: Fill it in -->
+      <div class="step-wrapper">
+        <div class="step-left">
+          <div class="step-circle">2</div>
+          <div class="step-line"></div>
         </div>
-        <div class="field">
-          <label>Cohort 1 — Units per Table</label>
-          <input type="number" id="cohort1Units" value="2" oninput="checkReady()">
-        </div>
-        <div class="field">
-          <label>Cohort 2 — Min Table Size (ft)</label>
-          <input type="number" id="cohort2Min" value="12" oninput="checkReady()">
-          <span class="hint">Tables this size and above → Cohort 2</span>
-        </div>
-        <div class="field">
-          <label>Cohort 2 — Units per Table</label>
-          <input type="number" id="cohort2Units" value="3" oninput="checkReady()">
+        <div class="step-content-wrapper">
+          <div class="step-card">
+            <h2>Fill it in</h2>
+            <p class="step-desc">Open the template in Excel (preferred) or Numbers and complete each tab below. Every tab feeds into the final distro output — don't skip any.</p>
+
+            <div class="tab-instructions">
+
+              <div class="tab-block">
+                <div class="tab-header">
+                  <div class="tab-dot" style="background:#3b82f6;"></div>
+                  <strong>New Products</strong>
+                  <span>— codes &amp; colors</span>
+                </div>
+                <div class="tab-body">
+                  <ul>
+                    <li>Enter the product code for each new device being launched (e.g. iPhone 16, MacBook Pro 14)</li>
+                    <li>Add all available colors/finishes for each product</li>
+                    <li>Include any NPI (New Product Introduction) items — these drive the fixture count calculations</li>
+                    <li>Do not include carry-over products that are not changing this cycle</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tab-block">
+                <div class="tab-header">
+                  <div class="tab-dot" style="background:#3b82f6;"></div>
+                  <strong>Per-Fixture Quantities</strong>
+                  <span>— how many devices per fixture, per color</span>
+                </div>
+                <div class="tab-body">
+                  <ul>
+                    <li>For each product + color combination, enter how many units go on a single fixture</li>
+                    <li>Reference your merchandising strategy to determine quantities per fixture type (e.g. 10ft table vs 12ft table)</li>
+                    <li>Cohort 1 (≤10ft tables) and Cohort 2 (≥12ft tables) may have different quantities — enter both</li>
+                    <li>Leave blank if a product does not appear on a given fixture type</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tab-block">
+                <div class="tab-header">
+                  <div class="tab-dot" style="background:#ef4444;"></div>
+                  <strong>Avenue Quantities</strong>
+                  <span>— bento allocations</span>
+                </div>
+                <div class="tab-body">
+                  <ul>
+                    <li>Enter the bento allocation for each product per avenue (e.g. Avenue 1, Avenue 2, etc.)</li>
+                    <li>Allocations should reflect the approved merchandising plan from your GEO VM stakeholder</li>
+                    <li>Each row represents one store avenue — confirm avenue count from the Fixture Fill file</li>
+                    <li>Zero-fill any avenues where a product is not allocated</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tab-block">
+                <div class="tab-header">
+                  <div class="tab-dot" style="background:#f59e0b;"></div>
+                  <strong>Programs</strong>
+                  <span>— overrides for specific stores</span>
+                </div>
+                <div class="tab-body">
+                  <ul>
+                    <li>List any stores that require special handling — T@A HP, Boardrooms, Flagship stores, etc.</li>
+                    <li>Enter the store number and the specific override (e.g. different quantity, different product mix)</li>
+                    <li>Program overrides take priority over standard cohort calculations</li>
+                    <li>Leave this tab empty if there are no store-specific exceptions this cycle</li>
+                  </ul>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="tip-row">
+              Numbers users: <em>File → Export To → Excel…</em> to save back as <code>.xlsx</code> before uploading
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Demo Units -->
-    <div class="card">
-      <h2>Demo Units</h2>
-      <div class="sign-rows" id="unitRows"></div>
-      <button class="add-btn" onclick="addUnitRow()">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#16a34a" stroke-width="1.5"/><path d="M8 5v6M5 8h6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Add Demo Unit
-      </button>
-    </div>
+      <!-- Step 3: Upload -->
+      <div class="step-wrapper">
+        <div class="step-left">
+          <div class="step-circle">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content-wrapper">
+          <div class="step-card">
+            <h2>Upload your files</h2>
+            <p class="step-desc">Drop in your filled Input Template plus the source-of-truth files from GEO. We'll merge them automatically.</p>
+            <div class="upload-grid">
 
-    <!-- Forecast & Buffers -->
-    <div class="card">
-      <h2>Forecast &amp; Buffers</h2>
-      <div class="two-col">
-        <div class="field">
-          <label>Forecast Period</label>
-          <input type="text" id="forecastPeriod" placeholder="e.g. JUN26" oninput="checkReady()">
-          <span class="hint">Used to label the forecast output</span>
-        </div>
-        <div class="field">
-          <label>Forecast Multiplier</label>
-          <input type="number" id="forecastMultiplier" value="1" step="0.1" oninput="checkReady()">
-          <span class="hint">Multiply quantities for future forecast (e.g. 1.1 = +10%)</span>
-        </div>
-        <div class="field">
-          <label>Buffer %</label>
-          <input type="number" id="bufferPct" value="20" oninput="checkReady()">
-          <span class="hint">Applied to total merchandised quantity</span>
-        </div>
-        <div class="field">
-          <label>In-Store Buffer (flat add)</label>
-          <input type="number" id="instoreBuffer" value="1" oninput="checkReady()">
-          <span class="hint">Added after buffer, rounded up</span>
-        </div>
-        <div class="field" style="grid-column: 1 / -1;">
-          <label>Output File Name</label>
-          <input type="text" id="outputName" placeholder="e.g. JUN26_Demo_Distro" oninput="checkReady()">
-          <span class="hint">No need to add .xlsx — it will be added automatically</span>
+              <div class="drop-zone" id="zone-template" ondragover="onDrag(event,'zone-template')" ondragleave="offDrag('zone-template')" ondrop="onDrop(event,'template')">
+                <input type="file" accept=".xlsx,.xls" onchange="loadFile(event,'template')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
+                <h3>Filled Input Template</h3>
+                <p>.xlsx — the template you just filled</p>
+                <div class="loaded-name" id="name-template"></div>
+              </div>
+
+              <div class="drop-zone" id="zone-fixture" ondragover="onDrag(event,'zone-fixture')" ondragleave="offDrag('zone-fixture')" ondrop="onDrop(event,'fixture')">
+                <input type="file" accept=".xlsx,.xls" onchange="loadFile(event,'fixture')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h18v4H3zm0 7h18v4H3zm0 7h18v4H3z"/></svg>
+                <h3>Fixture Count file</h3>
+                <p>.xlsx from GEO partners</p>
+                <div class="loaded-name" id="name-fixture"></div>
+              </div>
+
+              <div class="drop-zone" id="zone-fill" ondragover="onDrag(event,'zone-fill')" ondragleave="offDrag('zone-fill')" ondrop="onDrop(event,'fill')">
+                <input type="file" accept=".xlsx,.xls" onchange="loadFile(event,'fill')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l9 6 9-6"/></svg>
+                <h3>Fixture Fill file</h3>
+                <p>.xlsx — Avenues / store layouts</p>
+                <div class="loaded-name" id="name-fill"></div>
+              </div>
+
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- Step 4: Config -->
+      <div class="step-wrapper">
+        <div class="step-left">
+          <div class="step-circle">4</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content-wrapper">
+          <div class="step-card">
+            <h2>Configure &amp; forecast</h2>
+            <p class="step-desc">Set your cohort thresholds, buffer rates, and forecast period.</p>
+            <div class="two-col">
+              <div class="field">
+                <label>WW Fixture Counts Tab Name</label>
+                <input type="text" id="wwTab" placeholder="e.g. WW Fixture Counts JUN26" oninput="checkReady()">
+                <span class="hint">Exact tab name in your Fixture Count file</span>
+              </div>
+              <div class="field">
+                <label>Forecast Period</label>
+                <input type="text" id="forecastPeriod" placeholder="e.g. JUN26" oninput="checkReady()">
+              </div>
+              <div class="field">
+                <label>Cohort 1 — Max Table Size (ft)</label>
+                <input type="number" id="cohort1Max" value="10" oninput="checkReady()">
+                <span class="hint">Tables this size and under</span>
+              </div>
+              <div class="field">
+                <label>Cohort 1 — Units per Table</label>
+                <input type="number" id="cohort1Units" value="2" oninput="checkReady()">
+              </div>
+              <div class="field">
+                <label>Cohort 2 — Min Table Size (ft)</label>
+                <input type="number" id="cohort2Min" value="12" oninput="checkReady()">
+                <span class="hint">Tables this size and above</span>
+              </div>
+              <div class="field">
+                <label>Cohort 2 — Units per Table</label>
+                <input type="number" id="cohort2Units" value="3" oninput="checkReady()">
+              </div>
+              <div class="field">
+                <label>Buffer %</label>
+                <input type="number" id="bufferPct" value="20" oninput="checkReady()">
+              </div>
+              <div class="field">
+                <label>In-Store Buffer (flat add)</label>
+                <input type="number" id="instoreBuffer" value="1" oninput="checkReady()">
+              </div>
+              <div class="field" style="grid-column: 1 / -1;">
+                <label>Output File Name</label>
+                <input type="text" id="outputName" placeholder="e.g. JUN26_Demo_Distro" oninput="checkReady()">
+                <span class="hint">No need to add .xlsx</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Generate -->
+      <div class="step-wrapper">
+        <div class="step-left">
+          <div class="step-circle">5</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content-wrapper">
+          <div class="step-card">
+            <h2>Generate distro</h2>
+            <p class="step-desc">We'll merge your inputs, run the calc engine, and build the output xlsx.</p>
+            <button class="generate-btn" id="generateBtn" onclick="generate()">Generate</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Download -->
+      <div class="step-wrapper">
+        <div class="step-left">
+          <div class="step-circle">6</div>
+        </div>
+        <div class="step-content-wrapper">
+          <div class="step-card">
+            <h2>Review &amp; download</h2>
+            <div class="output-box" id="outputBox">
+              Outputs will appear here after generation.
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <div class="status-bar" id="statusBar"></div>
-
   </main>
 
+  <footer>Internal tool · VM Team Confidential</footer>
+
   <script>
-    const state = { fixtureWB: null };
+    const files = { template: null, fixture: null, fill: null };
 
-    window.onload = () => addUnitRow();
-
-    function loadFile(evt) {
+    function loadFile(evt, type) {
       const file = evt.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = e => {
-        state.fixtureWB = XLSX.read(e.target.result, { type: 'array' });
-        document.getElementById('fixtureZone').classList.add('loaded');
-        document.getElementById('fixtureName').textContent = '✓ ' + file.name;
+        files[type] = { wb: XLSX.read(e.target.result, { type: 'array' }), name: file.name };
+        document.getElementById('zone-' + type).classList.add('loaded');
+        document.getElementById('name-' + type).textContent = '✓ ' + file.name;
         checkReady();
       };
       reader.readAsArrayBuffer(file);
@@ -355,134 +615,111 @@
 
     function onDrag(evt, id) { evt.preventDefault(); document.getElementById(id).classList.add('drag-over'); }
     function offDrag(id) { document.getElementById(id).classList.remove('drag-over'); }
-    function onDrop(evt) {
+    function onDrop(evt, type) {
       evt.preventDefault();
-      offDrag('fixtureZone');
+      offDrag('zone-' + type);
       const file = evt.dataTransfer.files[0];
-      if (!file) return;
-      loadFile({ target: { files: [file] } });
-    }
-
-    function addUnitRow() {
-      const container = document.getElementById('unitRows');
-      const row = document.createElement('div');
-      row.className = 'sign-row';
-      row.innerHTML = `
-        <div class="field">
-          <label>Demo Unit Name</label>
-          <input type="text" placeholder="e.g. MacBook Pro 14" oninput="checkReady()">
-        </div>
-        <div class="field">
-          <label>Part Number</label>
-          <input type="text" placeholder="e.g. MRX33LL/A" oninput="checkReady()">
-        </div>
-        <button class="remove-btn" onclick="this.parentElement.remove(); checkReady();" title="Remove">×</button>
-      `;
-      container.appendChild(row);
-      checkReady();
-    }
-
-    function checkReady() {
-      const ready =
-        state.fixtureWB &&
-        v('lobTab') && v('wwTab') && v('outputName') &&
-        document.querySelectorAll('#unitRows .sign-row').length > 0;
-      document.getElementById('generateBtn').disabled = !ready;
+      if (file) loadFile({ target: { files: [file] } }, type);
     }
 
     function v(id) { return document.getElementById(id).value.trim(); }
 
+    function checkReady() {
+      const ready = files.template && files.fixture && files.fill && v('wwTab') && v('outputName');
+      const btn = document.getElementById('generateBtn');
+      btn.classList.toggle('ready', !!ready);
+      btn.disabled = !ready;
+    }
+
     function generate() {
       const btn = document.getElementById('generateBtn');
-      btn.disabled = true;
-      btn.textContent = 'Processing…';
-      setStatus('info', 'Processing your file…');
+      btn.textContent = 'Generating…';
+      btn.classList.remove('ready');
 
       setTimeout(() => {
         try {
-          const result = processDemo();
-          XLSX.writeFile(result, (v('outputName') || 'demo_distro') + '.xlsx');
-          setStatus('success', 'File generated successfully!');
-        } catch (err) {
-          setStatus('error', 'Error: ' + err.message);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Generate';
-          checkReady();
+          const outputWB = buildDistro();
+          const outputName = (v('outputName') || 'Demo_Distro') + '.xlsx';
+          XLSX.writeFile(outputWB, outputName);
+
+          const box = document.getElementById('outputBox');
+          box.className = 'output-box has-result';
+          box.innerHTML = `
+            <div style="font-size:14px;font-weight:600;color:#15803d;margin-bottom:8px;">✓ Distro generated successfully</div>
+            <div class="output-file">
+              <span style="font-size:14px;font-weight:500;">${outputName}</span>
+              <span style="font-size:12px;color:#6e6e73;">Check your downloads folder</span>
+            </div>
+          `;
+        } catch(err) {
+          const box = document.getElementById('outputBox');
+          box.className = 'output-box has-result';
+          box.innerHTML = `<span style="color:#be123c;">Error: ${err.message}</span>`;
         }
-      }, 50);
+
+        btn.textContent = 'Generate';
+        checkReady();
+      }, 100);
     }
 
-    function processDemo() {
-      const fixtureWB = state.fixtureWB;
-      const wwTabName = v('wwTab');
+    function buildDistro() {
+      const fixtureWB  = files.fixture.wb;
+      const templateWB = files.template.wb;
+      const fillWB     = files.fill.wb;
+      const wwTabName  = v('wwTab');
 
       if (!fixtureWB.SheetNames.includes(wwTabName))
-        throw new Error(`Tab "${wwTabName}" not found. Available tabs: ${fixtureWB.SheetNames.join(', ')}`);
+        throw new Error(`Tab "${wwTabName}" not found. Available: ${fixtureWB.SheetNames.join(', ')}`);
 
-      const fixtureSheet = fixtureWB.Sheets[wwTabName];
-      const rows = XLSX.utils.sheet_to_json(fixtureSheet, { defval: '' });
+      const rows = XLSX.utils.sheet_to_json(fixtureWB.Sheets[wwTabName], { defval: '' });
       if (!rows.length) throw new Error('No data found in the WW Fixture Counts tab.');
 
-      const cohort1Max       = parseInt(v('cohort1Max'))         || 10;
-      const cohort2Min       = parseInt(v('cohort2Min'))         || 12;
-      const cohort1Units     = parseInt(v('cohort1Units'))       || 2;
-      const cohort2Units     = parseInt(v('cohort2Units'))       || 3;
-      const bufferPct        = parseFloat(v('bufferPct'))        / 100 || 0.2;
-      const instoreBuf       = parseInt(v('instoreBuffer'))      || 1;
-      const forecastMult     = parseFloat(v('forecastMultiplier')) || 1;
-      const forecastPeriod   = v('forecastPeriod') || '';
+      const cohort1Max   = parseInt(v('cohort1Max'))   || 10;
+      const cohort2Min   = parseInt(v('cohort2Min'))   || 12;
+      const cohort1Units = parseInt(v('cohort1Units')) || 2;
+      const cohort2Units = parseInt(v('cohort2Units')) || 3;
+      const bufferPct    = parseFloat(v('bufferPct'))  / 100 || 0.2;
+      const instoreBuf   = parseInt(v('instoreBuffer')) || 1;
+      const period       = v('forecastPeriod') || '';
 
-      const unitRows = Array.from(document.querySelectorAll('#unitRows .sign-row'));
-      const units = unitRows.map(r => {
-        const inputs = r.querySelectorAll('input');
-        return { name: inputs[0].value.trim(), partNum: inputs[1].value.trim() };
-      }).filter(u => u.name);
-
-      const outputRows = [];
-
-      rows.forEach(row => {
+      const outputRows = rows.map(row => {
         const keys = Object.keys(row);
-        const tableKey = keys.find(k => k.toLowerCase().includes('table'));
+        const tableKey = keys.find(k => k.toLowerCase().includes('table')) || keys[0];
         const tableSize = parseFloat(row[tableKey] || 0);
 
-        let unitsPerTable = 0;
-        if (tableSize <= cohort1Max) unitsPerTable = cohort1Units;
-        else if (tableSize >= cohort2Min) unitsPerTable = cohort2Units;
+        const unitsPerTable = tableSize <= cohort1Max ? cohort1Units
+                            : tableSize >= cohort2Min ? cohort2Units : 0;
 
-        const baseQty      = Math.round(tableSize * unitsPerTable);
-        const forecastQty  = Math.round(baseQty * forecastMult);
-        const buffer       = Math.ceil(forecastQty * bufferPct);
-        const grandTotal   = forecastQty + buffer + instoreBuf;
+        const baseQty    = Math.round(tableSize * unitsPerTable);
+        const buffer     = Math.ceil(baseQty * bufferPct);
+        const grandTotal = baseQty + buffer + instoreBuf;
 
-        units.forEach(unit => {
-          outputRows.push({
-            ...row,
-            'Demo Unit':          unit.name,
-            'Part Number':        unit.partNum,
-            'Units per Table':    unitsPerTable,
-            'Base Qty':           baseQty,
-            [`Forecast Qty (${forecastPeriod})`]: forecastQty,
-            'Buffer (20%)':       buffer,
-            'In-Store Buffer (+1)': instoreBuf,
-            'Grand Total':        grandTotal,
-          });
-        });
+        return {
+          ...row,
+          'Units per Table':        unitsPerTable,
+          'Base Qty':               baseQty,
+          [`Forecast (${period})`]: baseQty,
+          'Buffer (20%)':           buffer,
+          'In-Store Buffer (+1)':   instoreBuf,
+          'Grand Total':            grandTotal,
+        };
       });
 
-      const newWB = XLSX.utils.book_new();
-      fixtureWB.SheetNames.forEach(name => {
-        XLSX.utils.book_append_sheet(newWB, fixtureWB.Sheets[name], name);
-      });
-      XLSX.utils.book_append_sheet(newWB, XLSX.utils.json_to_sheet(outputRows), 'Demo Distro');
-      return newWB;
-    }
+      const outputWB = XLSX.utils.book_new();
 
-    function setStatus(type, msg) {
-      const bar = document.getElementById('statusBar');
-      bar.className = 'status-bar ' + type;
-      bar.innerHTML = msg;
-      bar.style.display = 'flex';
+      // Add distro output sheet
+      XLSX.utils.book_append_sheet(outputWB, XLSX.utils.json_to_sheet(outputRows), 'Demo Distro Output');
+
+      // Carry over template sheets
+      templateWB.SheetNames.forEach(name => {
+        XLSX.utils.book_append_sheet(outputWB, templateWB.Sheets[name], name);
+      });
+
+      // Carry over avenue assignments from fill file
+      const fillSheet = fillWB.Sheets[fillWB.SheetNames[0]];
+      if (fillSheet) XLSX.utils.book_append_sheet(outputWB, fillSheet, 'Avenue Assignments');
+
+      return outputWB;
     }
   </script>
 
