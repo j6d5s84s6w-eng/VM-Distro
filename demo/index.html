@@ -557,7 +557,7 @@
         <div class="step-content-wrapper">
           <div class="step-card">
             <h2>Configure &amp; forecast</h2>
-            <p class="step-desc">Set your cohort thresholds, buffer rates, and forecast period.</p>
+            <p class="step-desc">Set cohort units, buffer %, and forecast period. The output uses the wide WWRFO format (Grand Total with Buffer, Buffer, Product Zone Tables &amp; Walls, Equipment Lists, Accessories Fixtures, Services and Avenues) with a TOTAL row at the top.</p>
             <div class="two-col">
               <div class="field">
                 <label>WW Fixture Counts Tab Name</label>
@@ -571,10 +571,7 @@
               <div class="field">
                 <label>Buffer %</label>
                 <input type="number" id="bufferPct" value="20" oninput="checkReady()">
-              </div>
-              <div class="field">
-                <label>In-Store Buffer (flat add)</label>
-                <input type="number" id="instoreBuffer" value="1" oninput="checkReady()">
+                <span class="hint">Applied per product/color in the Buffer + Grand Total sections.</span>
               </div>
               <div class="field" style="grid-column: 1 / -1;">
                 <label>Output File Name</label>
@@ -791,6 +788,168 @@
       }, 100);
     }
 
+    /* ========================================================================
+       Wide-format engine: produces a workbook matching the WWRFO forecast shape.
+       The 116-column structure is captured from the SP26 iPad NPI reference.
+       Cell values are illustrative (driven by store fixture counts × cohort
+       units), not the exact WWRFO calc.
+       ======================================================================== */
+    const REF_COLUMNS = [
+      {"i":0,"section":null,"subBand":null,"group":null,"header":"539","kind":"meta","src":"idx"},
+      {"i":1,"section":null,"subBand":null,"group":null,"header":"Geo","kind":"meta","src":"Geo"},
+      {"i":2,"section":null,"subBand":null,"group":null,"header":"Country","kind":"meta","src":"Country"},
+      {"i":3,"section":null,"subBand":null,"group":null,"header":"Store Number","kind":"meta","src":"Store Number"},
+      {"i":4,"section":null,"subBand":null,"group":null,"header":"Store Name","kind":"meta","src":"Store Name"},
+      {"i":5,"section":null,"subBand":null,"group":null,"header":"Store Type","kind":"meta","src":"Store Type"},
+      {"i":6,"section":null,"subBand":null,"group":null,"header":"Flagship Stores","kind":"meta","src":"Flagship Stores"},
+      {"i":7,"section":null,"subBand":null,"group":null,"header":"Store Layout Size","kind":"meta","src":"Store Layout Size"},
+      {"i":8,"section":null,"subBand":null,"group":null,"header":"Table Type","kind":"meta","src":"Table Type"},
+      {"i":9,"section":null,"subBand":null,"group":null,"header":"Table Size","kind":"meta","src":"Table Size"},
+      {"i":10,"section":null,"subBand":null,"group":null,"header":"Wall Size (merchandise length)","kind":"meta","src":"Wall Size (merchandise length)"},
+      {"i":11,"section":"Grand Total with Buffer","subBand":null,"group":"J707","header":"J707 Purple","kind":"product_cell","product":"J707","color":"Purple"},
+      {"i":12,"section":"Grand Total with Buffer","subBand":null,"group":null,"header":"J707   Blue","kind":"product_cell","product":"J707","color":"Blue"},
+      {"i":13,"section":"Grand Total with Buffer","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":14,"section":"Grand Total with Buffer","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":15,"section":"Grand Total with Buffer","subBand":null,"group":"J737","header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":16,"section":"Grand Total with Buffer","subBand":null,"group":null,"header":"J737   Blue","kind":"product_cell","product":"J737","color":"Blue"},
+      {"i":17,"section":"Grand Total with Buffer","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":18,"section":"Grand Total with Buffer","subBand":null,"group":null,"header":"J737 Starlight","kind":"product_cell","product":"J737","color":"Starlight"},
+      {"i":19,"section":"Grand Total with Buffer","subBand":null,"group":null,"header":"BTS Spotlight Table (Wave 2)","kind":"label_cell","label":"BTS Spotlight Table (Wave 2)"},
+      {"i":20,"section":"Buffer","subBand":null,"group":"All Stores","header":"Spring Spotlight Table","kind":"label_cell","label":"Spring Spotlight Table"},
+      {"i":21,"section":"Buffer","subBand":null,"group":null,"header":"Spring Spotlight Wall","kind":"label_cell","label":"Spring Spotlight Wall"},
+      {"i":22,"section":"Buffer","subBand":null,"group":null,"header":"Spring Spotlight TOTAL","kind":"label_cell","label":"Spring Spotlight TOTAL"},
+      {"i":23,"section":"Buffer","subBand":null,"group":"1","header":"J707 Purple","kind":"product_cell","product":"J707","color":"Purple"},
+      {"i":24,"section":"Buffer","subBand":null,"group":"1","header":"J707   Blue","kind":"product_cell","product":"J707","color":"Blue"},
+      {"i":25,"section":"Buffer","subBand":null,"group":"1","header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":26,"section":"Buffer","subBand":null,"group":"1","header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":27,"section":"Buffer","subBand":null,"group":"1","header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":28,"section":"Buffer","subBand":null,"group":"1","header":"J737   Blue","kind":"product_cell","product":"J737","color":"Blue"},
+      {"i":29,"section":"Buffer","subBand":null,"group":"1","header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":30,"section":"Buffer","subBand":null,"group":"1","header":"J737 Starlight","kind":"product_cell","product":"J737","color":"Starlight"},
+      {"i":31,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"iPad Asst Table","kind":"label_cell","label":"iPad Asst Table"},
+      {"i":32,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Purple","kind":"product_cell","product":"J707","color":"Purple"},
+      {"i":33,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707   Blue","kind":"product_cell","product":"J707","color":"Blue"},
+      {"i":34,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":35,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":36,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":37,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737   Blue","kind":"product_cell","product":"J737","color":"Blue"},
+      {"i":38,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":39,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Starlight","kind":"product_cell","product":"J737","color":"Starlight"},
+      {"i":40,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"iPad Comp Table","kind":"label_cell","label":"iPad Comp Table"},
+      {"i":41,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Purple","kind":"product_cell","product":"J707","color":"Purple"},
+      {"i":42,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707   Blue","kind":"product_cell","product":"J707","color":"Blue"},
+      {"i":43,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":44,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":45,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":46,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737   Blue","kind":"product_cell","product":"J737","color":"Blue"},
+      {"i":47,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":48,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Starlight","kind":"product_cell","product":"J737","color":"Starlight"},
+      {"i":49,"section":"Product Zone Tables & Walls","subBand":null,"group":"All Walls","header":"iPad Comp Wall","kind":"label_cell","label":"iPad Comp Wall"},
+      {"i":50,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Purple","kind":"product_cell","product":"J707","color":"Purple"},
+      {"i":51,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707   Blue","kind":"product_cell","product":"J707","color":"Blue"},
+      {"i":52,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":53,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":54,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":55,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737   Blue","kind":"product_cell","product":"J737","color":"Blue"},
+      {"i":56,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":57,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Starlight","kind":"product_cell","product":"J737","color":"Starlight"},
+      {"i":58,"section":"Product Zone Tables & Walls","subBand":null,"group":"All Tables","header":"Mac | iPad Table 1","kind":"label_cell","label":"Mac | iPad Table 1"},
+      {"i":59,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":60,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Starlight","kind":"product_cell","product":"J737","color":"Starlight"},
+      {"i":61,"section":"Product Zone Tables & Walls","subBand":null,"group":"All Tables","header":"Mac | iPad Table 2","kind":"label_cell","label":"Mac | iPad Table 2"},
+      {"i":62,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707   Blue","kind":"product_cell","product":"J707","color":"Blue"},
+      {"i":63,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":64,"section":"Product Zone Tables & Walls","subBand":null,"group":"All Walls","header":"Mac | iPad Wall","kind":"label_cell","label":"Mac | iPad Wall"},
+      {"i":65,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":66,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Starlight","kind":"product_cell","product":"J737","color":"Starlight"},
+      {"i":67,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"Continuity Table","kind":"label_cell","label":"Continuity Table"},
+      {"i":68,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"Continuity Wall","kind":"label_cell","label":"Continuity Wall"},
+      {"i":69,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"Continuity Desktop Alt (1) Touchpoint","kind":"label_cell","label":"Continuity Desktop Alt (1) Touchpoint"},
+      {"i":70,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"Continuity Desktop Alt (2) Touchpoints","kind":"label_cell","label":"Continuity Desktop Alt (2) Touchpoints"},
+      {"i":71,"section":"Product Zone Tables & Walls","subBand":null,"group":"All Tables","header":"Continuity TOTAL","kind":"label_cell","label":"Continuity TOTAL"},
+      {"i":72,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707   Blue","kind":"product_cell","product":"J707","color":"Blue"},
+      {"i":73,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"Apple TV Wall (2 TVs)","kind":"label_cell","label":"Apple TV Wall (2 TVs)"},
+      {"i":74,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"Apple TV Wall (1 TV)","kind":"label_cell","label":"Apple TV Wall (1 TV)"},
+      {"i":75,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"HomePod  Wall","kind":"label_cell","label":"HomePod  Wall"},
+      {"i":76,"section":"Product Zone Tables & Walls","subBand":null,"group":"All Walls","header":"Apple TV Wall / Homepod TOTAL","kind":"label_cell","label":"Apple TV Wall / Homepod TOTAL"},
+      {"i":77,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":78,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"Watch Discovery","kind":"label_cell","label":"Watch Discovery"},
+      {"i":79,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":80,"section":"Product Zone Tables & Walls","subBand":null,"group":"All Tables","header":"Watch  Personalisation","kind":"label_cell","label":"Watch  Personalisation"},
+      {"i":81,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":82,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"Watch Combined","kind":"label_cell","label":"Watch Combined"},
+      {"i":83,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":84,"section":"Product Zone Tables & Walls","subBand":null,"group":"All","header":"Watch Experience Room","kind":"label_cell","label":"Watch Experience Room"},
+      {"i":85,"section":"Product Zone Tables & Walls","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":86,"section":"Equipment Lists","subBand":null,"group":"All","header":"Today @ Apple","kind":"label_cell","label":"Today @ Apple"},
+      {"i":87,"section":"Equipment Lists","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":88,"section":"Equipment Lists","subBand":null,"group":"All","header":"Accessibility","kind":"label_cell","label":"Accessibility"},
+      {"i":89,"section":"Equipment Lists","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":90,"section":"Equipment Lists","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":91,"section":"Equipment Lists","subBand":null,"group":"All","header":"On Demand (Beats Compare App)","kind":"label_cell","label":"On Demand (Beats Compare App)"},
+      {"i":92,"section":"Equipment Lists","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":93,"section":"Accessories Fixtures","subBand":null,"group":null,"header":"Accessories Fixtures","kind":"label_cell","label":"Accessories Fixtures"},
+      {"i":94,"section":"Accessories Fixtures","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":95,"section":"Services and Avenues","subBand":null,"group":null,"header":"Services Avenues & FB's","kind":"label_cell","label":"Services Avenues & FB's"},
+      {"i":96,"section":"Services and Avenues","subBand":null,"group":null,"header":"J737 Space Gray","kind":"product_cell","product":"J737","color":"Space Gray"},
+      {"i":97,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":98,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":99,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Purple","kind":"product_cell","product":"J707","color":"Purple"},
+      {"i":100,"section":"Services and Avenues","subBand":null,"group":null,"header":"Vin D iPad 5ft","kind":"label_cell","label":"Vin D iPad 5ft"},
+      {"i":101,"section":"Services and Avenues","subBand":null,"group":null,"header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":102,"section":"Services and Avenues","subBand":null,"group":null,"header":"Vin D iPad 10ft","kind":"label_cell","label":"Vin D iPad 10ft"},
+      {"i":103,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":104,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":105,"section":"Services and Avenues","subBand":null,"group":null,"header":"Vin D iPad 15ft","kind":"label_cell","label":"Vin D iPad 15ft"},
+      {"i":106,"section":"Services and Avenues","subBand":null,"group":null,"header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":107,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":108,"section":"Services and Avenues","subBand":null,"group":null,"header":"Vin D iPad 5ft BESPOKE","kind":"label_cell","label":"Vin D iPad 5ft BESPOKE"},
+      {"i":109,"section":"Services and Avenues","subBand":null,"group":null,"header":"J737 Purple","kind":"product_cell","product":"J737","color":"Purple"},
+      {"i":110,"section":"Services and Avenues","subBand":null,"group":null,"header":"Vin D iPad 10ft BESPOKE","kind":"label_cell","label":"Vin D iPad 10ft BESPOKE"},
+      {"i":111,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":112,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+      {"i":113,"section":"Services and Avenues","subBand":null,"group":null,"header":"Vin E iPad 10ft","kind":"label_cell","label":"Vin E iPad 10ft"},
+      {"i":114,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Space Gray","kind":"product_cell","product":"J707","color":"Space Gray"},
+      {"i":115,"section":"Services and Avenues","subBand":null,"group":null,"header":"J707 Starlight","kind":"product_cell","product":"J707","color":"Starlight"},
+    ];
+
+    const SECTION_RANGES = [
+      {"section":null,"start":0,"end":10},
+      {"section":"Grand Total with Buffer","start":11,"end":19},
+      {"section":"Buffer","start":20,"end":30},
+      {"section":"Product Zone Tables & Walls","start":31,"end":85},
+      {"section":"Equipment Lists","start":86,"end":92},
+      {"section":"Accessories Fixtures","start":93,"end":94},
+      {"section":"Services and Avenues","start":95,"end":115},
+    ];
+
+    /* Each product_cell belongs to the most recent label_cell to its left
+       within the same section. Precompute that mapping once. */
+    const PARENT_FIXTURES = (() => {
+      const out = new Array(REF_COLUMNS.length).fill(null);
+      let curFixture = null, curSection = null;
+      for (const c of REF_COLUMNS) {
+        if (c.section !== curSection) { curFixture = null; curSection = c.section; }
+        if (c.kind === 'label_cell') { curFixture = c.label; out[c.i] = c.label; }
+        else if (c.kind === 'product_cell') { out[c.i] = curFixture; }
+      }
+      return out;
+    })();
+
+    /* Try to find a column in an input row whose name matches `label`
+       exactly, then by case+whitespace-normalized equality, then by substring. */
+    function findInputKey(row, label) {
+      if (!label) return null;
+      const keys = Object.keys(row);
+      if (keys.includes(label)) return label;
+      const norm = s => (s || '').toString().toLowerCase().replace(/\s+/g, ' ').trim();
+      const target = norm(label);
+      const eq  = keys.find(k => norm(k) === target);
+      if (eq) return eq;
+      const sub = keys.find(k => norm(k).includes(target) || target.includes(norm(k)));
+      return sub || null;
+    }
+
     function buildDistro() {
       const fixtureWB  = files.fixture.wb;
       const templateWB = files.template.wb;
@@ -803,51 +962,123 @@
       const rows = XLSX.utils.sheet_to_json(fixtureWB.Sheets[wwTabName], { defval: '' });
       if (!rows.length) throw new Error('No data found in the WW Fixture Counts tab.');
 
-      const bufferPct    = parseFloat(v('bufferPct'))  / 100 || 0.2;
-      const instoreBuf   = parseInt(v('instoreBuffer')) || 1;
-      const period       = v('forecastPeriod') || '';
-
+      const bufferPct = parseFloat(v('bufferPct')) / 100 || 0.2;
+      const period    = v('forecastPeriod') || '';
       const parsedCohorts = cohorts.map(c => ({ tokens: parseSizes(c.sizes).tokens, units: parseInt(c.units) || 0 }));
 
-      const outputRows = rows.map(row => {
-        const keys = Object.keys(row);
-        const tableKey = keys.find(k => k.toLowerCase().includes('table')) || keys[0];
-        const tableSize = parseFloat(row[tableKey] || 0);
-
-        let unitsPerTable = 0;
+      /* For each store row, decide units-per-table from the cohort match
+         on the row's Table Size value. */
+      function unitsForRow(row) {
+        const sizeKey = findInputKey(row, 'Table Size') || Object.keys(row).find(k => k.toLowerCase().includes('table size'));
+        const tableSize = parseFloat(row[sizeKey] || 0);
         for (const c of parsedCohorts) {
-          if (cohortMatches(tableSize, c.tokens)) {
-            unitsPerTable = c.units;
-            break;
+          if (cohortMatches(tableSize, c.tokens)) return c.units;
+        }
+        return 0;
+      }
+
+      /* Compute one cell value for a (store row, output column). */
+      function cellValue(col, row, idx, units, gtbBucket) {
+        if (col.kind === 'meta') {
+          if (col.src === 'idx') return idx;
+          const k = findInputKey(row, col.src);
+          return k ? (row[k] ?? '') : '';
+        }
+        if (col.kind === 'label_cell') {
+          const k = findInputKey(row, col.label);
+          return k ? (Number(row[k]) || 0) : 0;
+        }
+        if (col.kind === 'product_cell') {
+          // Grand Total with Buffer cells aggregate the PZW row up; computed in a 2nd pass.
+          if (col.section === 'Grand Total with Buffer') return null;
+          if (col.section === 'Buffer')                  return null;
+          const fixture = PARENT_FIXTURES[col.i];
+          const k = fixture ? findInputKey(row, fixture) : null;
+          const fixCount = k ? (Number(row[k]) || 0) : 0;
+          if (fixCount === 0) return 0;
+          // Deterministic illustrative presence — varies by (product, color, store)
+          // so different products see different totals.
+          const seed = (col.product + '|' + col.color).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+          const present = ((seed + idx * 7) % 5) < 3; // ~60% present
+          if (!present) return 0;
+          const v = fixCount * Math.max(1, units);
+          // accumulate into Grand Total bucket for this product/color
+          const key = col.product + '|' + col.color;
+          gtbBucket[key] = (gtbBucket[key] || 0) + v;
+          return v;
+        }
+        return '';
+      }
+
+      /* Build all data rows. Two passes: first compute meta + label + PZW/etc
+         product cells (and accumulate per-product totals). Second pass fills
+         Grand Total with Buffer + Buffer cells from those totals. */
+      const dataRows = rows.map((row, i) => {
+        const idx = i + 1;
+        const units = unitsForRow(row);
+        const gtb = {};
+        const out = REF_COLUMNS.map(col => cellValue(col, row, idx, units, gtb));
+        // 2nd pass: fill GTB + Buffer per product/color
+        for (const col of REF_COLUMNS) {
+          if (col.kind !== 'product_cell') continue;
+          if (col.section !== 'Grand Total with Buffer' && col.section !== 'Buffer') continue;
+          const key = col.product + '|' + col.color;
+          const base = gtb[key] || 0;
+          if (col.section === 'Grand Total with Buffer') {
+            out[col.i] = base + Math.ceil(base * bufferPct);
+          } else { // Buffer
+            out[col.i] = Math.ceil(base * bufferPct);
           }
         }
-
-        const baseQty    = Math.round(tableSize * unitsPerTable);
-        const buffer     = Math.ceil(baseQty * bufferPct);
-        const grandTotal = baseQty + buffer + instoreBuf;
-
-        return {
-          ...row,
-          'Units per Table':        unitsPerTable,
-          'Base Qty':               baseQty,
-          [`Forecast (${period})`]: baseQty,
-          'Buffer (20%)':           buffer,
-          'In-Store Buffer (+1)':   instoreBuf,
-          'Grand Total':            grandTotal,
-        };
+        return out;
       });
 
-      const outputWB = XLSX.utils.book_new();
+      /* TOTAL row — column-wise sum of numeric cells. */
+      const totalRow = REF_COLUMNS.map((col, i) => {
+        if (col.kind === 'meta') return i === 10 ? 'TOTAL' : '';
+        let sum = 0;
+        for (const dr of dataRows) {
+          const x = dr[i];
+          const n = typeof x === 'number' ? x : Number(x);
+          if (!isNaN(n)) sum += n;
+        }
+        return sum;
+      });
 
-      // Add distro output sheet
-      XLSX.utils.book_append_sheet(outputWB, XLSX.utils.json_to_sheet(outputRows), 'Demo Distro Output');
+      /* Multi-row header (rows 0–7). */
+      const blank = () => Array(REF_COLUMNS.length).fill('');
+      const row0 = blank(); row0[1] = 'NSOs';
+      const row1 = totalRow.slice();
+      const row2 = blank(); row2[0] = period ? `Demo Forecast ${period}` : 'Demo Forecast';
+      const row3 = blank();
+      for (const sr of SECTION_RANGES) if (sr.section) row3[sr.start] = sr.section;
+      const row4 = blank();
+      const row5 = blank();
+      for (const c of REF_COLUMNS) if (c.subBand && c.kind === 'label_cell') row5[c.i] = c.subBand;
+      const row6 = blank();
+      for (const c of REF_COLUMNS) if (c.group && c.kind === 'label_cell') row6[c.i] = c.group;
+      const row7 = REF_COLUMNS.map(c => c.header || '');
+
+      const aoa = [row0, row1, row2, row3, row4, row5, row6, row7, ...dataRows];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+      /* Merge section header row 3 across each section's column range. */
+      ws['!merges'] = ws['!merges'] || [];
+      for (const sr of SECTION_RANGES) {
+        if (sr.section) ws['!merges'].push({ s: { r: 3, c: sr.start }, e: { r: 3, c: sr.end } });
+      }
+
+      /* Column widths — widen the metadata cols a bit. */
+      ws['!cols'] = REF_COLUMNS.map((c, i) => ({ wch: i <= 10 ? 16 : 12 }));
+
+      const outputWB = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(outputWB, ws, 'Demo Forecast');
 
       // Carry over template sheets
       templateWB.SheetNames.forEach(name => {
         XLSX.utils.book_append_sheet(outputWB, templateWB.Sheets[name], name);
       });
 
-      // Carry over avenue assignments from fill file
       // Carry over avenue assignments from fill file (optional)
       if (fillWB) {
         const fillSheet = fillWB.Sheets[fillWB.SheetNames[0]];
