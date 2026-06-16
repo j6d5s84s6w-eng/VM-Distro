@@ -338,6 +338,18 @@
     .buffer-row .field input,
     .buffer-row .field select { padding: 8px 12px; font-size: 14px; }
 
+    /* Products row — codename + colors + remove */
+    .product-row {
+      display: grid;
+      grid-template-columns: 1fr 2.4fr 36px;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 6px;
+    }
+    .product-row .field { gap: 4px; }
+    .product-row .field label { font-size: 12px; color: #6b7280; font-weight: 500; }
+    .product-row .field input { padding: 8px 12px; font-size: 14px; }
+
     /* Generate */
     .generate-btn {
       padding: 12px 32px;
@@ -594,6 +606,13 @@
             </div>
 
             <div class="cohorts-section">
+              <span class="cohorts-label">Products</span>
+              <span class="cohorts-hint">List each product codename + its colors (comma-separated). These drive the per-product columns in the output and the Product dropdown in Buffer Rules below. Change these for each NPI.</span>
+              <div id="productsContainer"></div>
+              <button type="button" class="add-cohort-btn" onclick="addProduct()">+ Add product</button>
+            </div>
+
+            <div class="cohorts-section">
               <span class="cohorts-label">Buffer Rules</span>
               <span class="cohorts-hint">Add a row per buffer rule. "Applies to" accepts table sizes (<code>10</code>, <code>7, 8</code>, <code>12+</code>) or fixture names (<code>Watch Discovery, Watch Combined</code>). "Per" controls whether qty is added to each color (4×) or once per table.</span>
               <div id="bufferRulesContainer"></div>
@@ -781,6 +800,58 @@
 
     renderCohorts();
 
+    /* Products: list of {code, colors} where colors is comma-separated.
+       Edit per NPI — drives output columns + Buffer Rules Product dropdown. */
+    let products = [
+      { code: 'J707',  colors: 'Purple, Blue, Space Gray, Starlight' },
+      { code: 'J737',  colors: 'Purple, Blue, Space Gray, Starlight' },
+      { code: 'Watch', colors: 'Space Gray' },
+    ];
+
+    function parseColors(str) {
+      return (str || '').split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    function renderProducts() {
+      const wrap = document.getElementById('productsContainer');
+      wrap.innerHTML = products.map((p, i) => `
+        <div class="product-row">
+          <div class="field">
+            <label>${i === 0 ? 'Codename' : ''}</label>
+            <input type="text" value="${(p.code || '').replace(/"/g, '&quot;')}" placeholder="e.g. J707" oninput="updateProduct(${i}, 'code', this.value)">
+          </div>
+          <div class="field">
+            <label>${i === 0 ? 'Colors (comma-separated)' : ''}</label>
+            <input type="text" value="${(p.colors || '').replace(/"/g, '&quot;')}" placeholder="e.g. Purple, Blue, Space Gray, Starlight" oninput="updateProduct(${i}, 'colors', this.value)">
+          </div>
+          <button type="button" class="remove-btn" onclick="removeProduct(${i})" ${products.length === 1 ? 'disabled' : ''} title="Remove product">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function updateProduct(i, key, val) {
+      products[i][key] = val;
+      renderBufferRules();
+      checkReady();
+    }
+
+    function addProduct() {
+      products.push({ code: '', colors: '' });
+      renderProducts();
+      renderBufferRules();
+      checkReady();
+    }
+
+    function removeProduct(i) {
+      if (products.length === 1) return;
+      products.splice(i, 1);
+      renderProducts();
+      renderBufferRules();
+      checkReady();
+    }
+
+    renderProducts();
+
     /* Buffer rules: each rule = {appliesTo, product, per, qty}.
        appliesTo: free-form — table sizes ("7, 8" or "12+") OR fixture names ("Watch Discovery").
        product: "J707" / "J737" / "Watch" / "All"
@@ -796,10 +867,16 @@
       { appliesTo: 'Watch Discovery, Watch Combined, Watch Personalisation', product: 'Watch', per: 'table', qty: 5 },
     ];
 
-    const BUFFER_PRODUCTS = ['J707', 'J737', 'Watch', 'All'];
+    const PRODUCT_ALIASES = { Watch: ['Watch', 'watch'] };
+
+    function bufferProductOptions() {
+      const codes = products.map(p => (p.code || '').trim()).filter(Boolean);
+      return [...codes, 'All'];
+    }
 
     function renderBufferRules() {
       const wrap = document.getElementById('bufferRulesContainer');
+      const opts = bufferProductOptions();
       wrap.innerHTML = bufferRules.map((r, i) => `
         <div class="buffer-row">
           <div class="field">
@@ -809,7 +886,8 @@
           <div class="field">
             <label>${i === 0 ? 'Product' : ''}</label>
             <select onchange="updateBufferRule(${i}, 'product', this.value)">
-              ${BUFFER_PRODUCTS.map(p => `<option value="${p}"${p === r.product ? ' selected' : ''}>${p}</option>`).join('')}
+              ${opts.map(p => `<option value="${p}"${p === r.product ? ' selected' : ''}>${p}</option>`).join('')}
+              ${opts.includes(r.product) ? '' : `<option value="${r.product}" selected>${r.product}</option>`}
             </select>
           </div>
           <div class="field">
@@ -1089,6 +1167,14 @@
         return false;
       }
 
+      /* Build a map: product code → its declared colors. Drives buffer math
+         so adding/removing products in Section 4 reshapes Buffer / GTB cells. */
+      const productColors = Object.fromEntries(
+        products.filter(p => (p.code || '').trim())
+                .map(p => [p.code.trim(), parseColors(p.colors)])
+      );
+      const nonWatchProductCodes = Object.keys(productColors).filter(c => !/watch/i.test(c));
+
       /* Compute buffer additions for one store row.
          - perProductColor[product+'|'+color] feeds Buffer + GTB section cells
          - perCol[colIdx] feeds PZW cells directly (used for Watch, which
@@ -1096,15 +1182,17 @@
       function computeBuffer(row) {
         const perProductColor = {};
         const perCol = {};
-        const COLORS = ['Purple', 'Blue', 'Space Gray', 'Starlight'];
 
         for (const rule of parsedBufferRules) {
           if (!bufferRuleApplies(rule, row)) continue;
-          const products = rule.product === 'All' ? ['J707', 'J737'] : [rule.product];
+          const ruleProducts = rule.product === 'All' ? nonWatchProductCodes : [rule.product];
 
-          for (const product of products) {
-            if (product === 'Watch') {
-              // Watch buffer goes to PZW Watch product cells (J707 Space Gray under Watch fixtures).
+          for (const product of ruleProducts) {
+            const colors = productColors[product] || [];
+            const isWatch = /watch/i.test(product);
+
+            if (isWatch) {
+              // Watch buffer goes to PZW Watch product cells.
               for (const col of REF_COLUMNS) {
                 if (col.kind !== 'product_cell') continue;
                 const parent = PARENT_FIXTURES[col.i] || '';
@@ -1116,17 +1204,16 @@
                 }
                 perCol[col.i] = (perCol[col.i] || 0) + add;
               }
-            } else {
-              // J707 / J737 — show in Buffer + GTB sections, per (product, color).
+            } else if (colors.length) {
               if (rule.per === 'color') {
-                for (const color of COLORS) {
+                for (const color of colors) {
                   const key = product + '|' + color;
                   perProductColor[key] = (perProductColor[key] || 0) + rule.qty;
                 }
               } else {
-                // per='table' — qty added once for the product (charge to first color so it
-                // doesn't double up across 4 color cells). Total = qty, not qty × 4.
-                const key = product + '|' + COLORS[0];
+                // per='table' — qty added once (charge to first color so it
+                // doesn't double up across color cells). Total = qty, not qty × N.
+                const key = product + '|' + colors[0];
                 perProductColor[key] = (perProductColor[key] || 0) + rule.qty;
               }
             }
