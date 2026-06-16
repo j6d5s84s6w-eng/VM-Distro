@@ -676,9 +676,63 @@
         document.getElementById('zone-' + type).classList.add('loaded');
         document.getElementById('name-' + type).textContent = '✓ ' + file.name;
         if (type === 'fixture') populateTabDropdown(files.fixture.wb);
+        if (type === 'template') prefillFromTemplate(files.template.wb);
         checkReady();
       };
       reader.readAsArrayBuffer(file);
+    }
+
+    /* Option A: Filled Input Template is the source of truth.
+       On upload, read Reset + New Products sheets and pre-fill Section 4. */
+    function prefillFromTemplate(wb) {
+      try {
+        // --- Reset sheet: Field/Value pairs ---
+        if (wb.SheetNames.includes('Reset')) {
+          const reset = XLSX.utils.sheet_to_json(wb.Sheets['Reset'], { header: 1, defval: '' });
+          const get = label => {
+            const r = reset.find(row => String(row[0] || '').trim().toLowerCase() === label.toLowerCase());
+            return r ? String(r[1] || '').trim() : '';
+          };
+          // Forecast Period ← Date suffix
+          const dateSuffix = get('Date suffix');
+          if (dateSuffix) {
+            const fp = document.getElementById('forecastPeriod');
+            if (fp && !fp.value) fp.value = dateSuffix;
+          }
+          // Output filename hint ← Reset name (only if blank)
+          const resetName = get('Reset name');
+          if (resetName) {
+            const on = document.getElementById('outputName');
+            if (on && !on.value) on.value = (resetName.replace(/\s+/g, '_') + (dateSuffix ? '' : '')) + '_Distro';
+          }
+        }
+
+        // --- New Products sheet: Code / Color rows ---
+        if (wb.SheetNames.includes('New Products')) {
+          const np = XLSX.utils.sheet_to_json(wb.Sheets['New Products'], { defval: '' });
+          // Aggregate colors by code
+          const byCode = {};
+          for (const row of np) {
+            const code  = String(row['Code']  || '').trim();
+            const color = String(row['Color'] || '').trim();
+            if (!code) continue;
+            if (!byCode[code]) byCode[code] = [];
+            if (color && !byCode[code].includes(color)) byCode[code].push(color);
+          }
+          const fromTemplate = Object.entries(byCode).map(([code, colors]) => ({
+            code, colors: colors.join(', '),
+          }));
+          if (fromTemplate.length) {
+            products = fromTemplate;
+            renderProducts();
+            renderBufferRules();
+          }
+        }
+
+        checkReady();
+      } catch (err) {
+        console.warn('Could not pre-fill from template:', err);
+      }
     }
 
     function populateTabDropdown(wb) {
@@ -1332,6 +1386,53 @@
 
       const outputWB = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(outputWB, ws, 'Demo Forecast');
+
+      /* Trace sheet — per-column documentation of where each output value
+         comes from. Lets users audit "why does cell X say Y?" without
+         reading code. */
+      const traceRows = [
+        ['Column', 'Excel ref', 'Section', 'Header', 'Kind', 'Pulls from', 'Formula'],
+      ];
+      const colLetter = idx => {
+        let n = idx, s = '';
+        do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26) - 1; } while (n >= 0);
+        return s;
+      };
+      for (const c of REF_COLUMNS) {
+        let pulls = '', formula = '';
+        if (c.kind === 'meta') {
+          pulls = c.src === 'idx' ? '(row number)' : `Fixture Counts → "${c.src}"`;
+          formula = c.src === 'idx' ? 'row index' : 'copy as-is';
+        } else if (c.kind === 'label_cell') {
+          pulls = `Fixture Counts → "${c.label}"`;
+          formula = 'copy fixture count for this store';
+        } else if (c.kind === 'product_cell') {
+          const parent = PARENT_FIXTURES[c.i] || '(none)';
+          if (c.section === 'Grand Total with Buffer') {
+            pulls = `PZW ${c.product} ${c.color} cells + Buffer Rules`;
+            formula = `sum(PZW ${c.product} ${c.color}) + buffer(${c.product} ${c.color})`;
+          } else if (c.section === 'Buffer') {
+            pulls = `Buffer Rules where Product=${c.product}`;
+            formula = 'sum of matching rule.qty (× colors if per=color)';
+          } else {
+            pulls = `Fixture Counts → "${parent}" × cohort units`;
+            formula = `fixture_count("${parent}") × cohort_units × presence(${c.product},${c.color})`;
+          }
+        }
+        traceRows.push([
+          colLetter(c.i), colLetter(c.i),
+          c.section || '(meta)',
+          c.header || '',
+          c.kind,
+          pulls,
+          formula,
+        ]);
+      }
+      const traceWS = XLSX.utils.aoa_to_sheet(traceRows);
+      traceWS['!cols'] = [
+        { wch: 8 }, { wch: 10 }, { wch: 28 }, { wch: 30 }, { wch: 14 }, { wch: 40 }, { wch: 60 },
+      ];
+      XLSX.utils.book_append_sheet(outputWB, traceWS, 'Trace');
 
       // Carry over template sheets
       templateWB.SheetNames.forEach(name => {
